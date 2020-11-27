@@ -1,20 +1,30 @@
 import Head from 'next/head'
-import Layout, { siteTitle } from '../components/layout'
+import Layout, {siteTitle} from '../components/layout'
 import utilStyles from '../styles/utils.module.css'
+import React from 'react';
+import useSWR from 'swr';
 
-export default function Home() {
+export default function Home(props) {
+  // async function getList() {
+  //   const res = await fetch(`api/getList`)
+  //   const json = await res.json();
+  //   console.log('getList ', {json});
+  //
+  //   return json;
+  // }
+
+  const {data, error} = useSWR(`api/getList`)
+
   return (
-    <Layout home>
-      <Head>
-        <title>{siteTitle}</title>
-      </Head>
-      <section className={utilStyles.headingMd}>
-        <p>[Your Self Introduction]</p>
-        <p>
-          (This is a sample website - you’ll be building a site like this in{' '}
-          <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
-        </p>
-      </section>
-    </Layout>
+      <Layout home>
+        <Head>
+          <title>{siteTitle}</title>
+        </Head>
+        <section className={utilStyles.headingMd}>
+          Data: {data}
+          <br/>
+          Error: {error}
+        </section>
+      </Layout>
   )
 }
