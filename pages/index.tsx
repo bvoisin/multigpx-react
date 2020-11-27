@@ -18,7 +18,7 @@ export default function Home() {
                 <title>1km PSC</title>
             </Head>
             <div>
-                <MyMap position={position} zoom={zoom}/>
+                <MyMap center={position} zoom={zoom} style={{height: '100vh', width: '100vw'}}/>
             </div>
         </div>
     )
