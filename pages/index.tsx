@@ -1,34 +1,25 @@
 import Head from 'next/head'
-import Layout, {siteTitle} from '../components/layout'
-import utilStyles from '../styles/utils.module.css'
 import React from 'react';
-import useSWR from 'swr';
-import {GpxFileList} from '../pages/api/getList';
+import dynamic from 'next/dynamic';
+
+const MyMap = dynamic(
+    () => import('../components/myMap'),
+    {ssr: false}
+);
 
 export default function Home() {
-    // async function getList() {
-    //   const res = await fetch(`api/getList`)
-    //   const json = await res.json();
-    //   console.log('getList ', {json});
-    //
-    //   return json;
-    // }
+    // const {data: fileList, error} = useSWR<GpxFileList>(`api/getList`)
 
-    const {data: fileList, error} = useSWR<GpxFileList>(`api/getList`)
-
+    const position = [48.864716, 2.349014] as [number, number]
+    const zoom = 13
     return (
-        <Layout home>
+        <div>
             <Head>
-                <title>{siteTitle}</title>
+                <title>1km PSC</title>
             </Head>
-            <section className={utilStyles.headingMd}>
-                Data:
-                <ul>
-                    {fileList?.map(f => <li key={f.key}>{f.key} <a href={f.url}>Link</a></li>)}
-                </ul>
-                <br/>
-                Error: {error}
-            </section>
-        </Layout>
+            <div>
+                <MyMap position={position} zoom={zoom}/>
+            </div>
+        </div>
     )
 }
