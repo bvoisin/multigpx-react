@@ -32,10 +32,9 @@ async function listFiles$(): Promise<GpxFileList> {
     })
 }
 
-export default async (_: NextApiRequest, res: NextApiResponse) => {
+export default async (_: NextApiRequest, res: NextApiResponse<GpxFileList>) => {
     // res.status(200).json(['a', 'b']);
     const fileList = await listFiles$()
     console.log('lst ', {fileList})
     res.status(200).json(fileList);
-
 };

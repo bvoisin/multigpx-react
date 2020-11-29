@@ -8,10 +8,9 @@ const MyMap = dynamic(
 );
 
 export default function Home() {
-    // const {data: fileList, error} = useSWR<GpxFileList>(`api/getList`)
-
     const position = [48.864716, 2.349014] as [number, number]
     const zoom = 13
+
     return (
         <div>
             <Head>
