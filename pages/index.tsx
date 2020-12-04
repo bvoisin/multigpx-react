@@ -7,7 +7,13 @@ const MyMap = dynamic(
     {ssr: false}
 );
 
+
 class Home extends React.Component {
+
+    constructor(props, context) {
+        super(props, context);
+
+    }
     position = [48.864716, 2.349014] as [number, number]
     zoom = 13
 

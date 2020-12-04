@@ -10,21 +10,25 @@ export interface GpxFileInfo {
 export type GpxFileList = GpxFileInfo[];
 
 async function listFiles$(): Promise<GpxFileList> {
-    return new Promise<GpxFileInfo[]>((resolve) => {
-        loginToAws();
-        const s3 = new aws.S3();
-        s3.listObjects({Delimiter: '/', Prefix: process.env.FILE_PREFIX, Bucket: process.env.BUCKET_NAME}, function (err, data) {
-            console.log('data ', {err, data})
-            const fileList$ = data.Contents
-                .map(f => f.Key)
-                .filter(key => key.endsWith('.gpx'))
-                .map(key =>
-                    s3.getSignedUrlPromise('getObject', {Bucket: process.env.BUCKET_NAME, Key: key})
-                        .then(url => ({key, url} as GpxFileInfo))
-                )
-            resolve(Promise.all(fileList$))
+    if (process.env.NO_FILES) {
+        return Promise.resolve([]);
+    } else {
+        return new Promise<GpxFileInfo[]>((resolve) => {
+            loginToAws();
+            const s3 = new aws.S3();
+            s3.listObjects({Delimiter: '/', Prefix: process.env.FILE_PREFIX, Bucket: process.env.BUCKET_NAME}, function (err, data) {
+                console.log('data ', {err, data})
+                const fileList$ = data.Contents
+                    .map(f => f.Key)
+                    .filter(key => key.endsWith('.gpx'))
+                    .map(key =>
+                        s3.getSignedUrlPromise('getObject', {Bucket: process.env.BUCKET_NAME, Key: key})
+                            .then(url => ({key, url} as GpxFileInfo))
+                    )
+                resolve(Promise.all(fileList$))
+            });
         });
-    })
+    }
 }
 
 export default async (_: NextApiRequest, res: NextApiResponse<GpxFileList>) => {
