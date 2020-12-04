@@ -385,7 +385,9 @@ const L_GPX = L.FeatureGroup.extend({
             _this.addLayer(layers);
             _this.fire('loaded', {layers: layers, element: gpx});
         }
-        if (input.substr(0, 1) === '<') { // direct XML has to start with a <
+        if (input instanceof Document) {
+            cb(input, options);
+        } else if (input.substr(0, 1) === '<') { // direct XML has to start with a <
             const parser = new DOMParser();
             if (async) {
                 setTimeout(function () {
@@ -721,7 +723,7 @@ const L_GPX = L.FeatureGroup.extend({
 
 type C = (new (gpx, options) => typeof L_GPX)
 
-export function createLeafletGpx(gpx, options) {
+export function createLeafletGpx(gpx: string | Document, options) {
     const lgpx = new (L_GPX as C)(gpx, options);
     return lgpx;
 }

@@ -4,6 +4,8 @@ import {Map as LeafletMap} from 'leaflet';
 import {GpxFileList} from '../pages/api/getGpxFileList';
 import {createLeafletGpx} from '../lib/leafletgpx';
 import {DroppedMapsContext} from '../pages';
+import {reduceGpx} from '../lib/reduceGpx';
+import {uploadGpxText} from '../lib/upload';
 
 
 const colors = [
@@ -48,7 +50,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 export default function MyMap(opts: MyMapContainerProps) {
 
 
-    function addGpxToMap(gpxFile: string, map: LeafletMap, index: number) {
+    function addGpxToMap(gpxFile: string | Document, map: LeafletMap, index: number) {
         const gpxOptions = {
             async: true,
             marker_options: {
@@ -93,12 +95,15 @@ export default function MyMap(opts: MyMapContainerProps) {
                 function fillMap(map: LeafletMap) {
                     console.log('fillMap', {map});
                     droppedGpxFile$.subscribe(file => {
-                        const reader = new FileReader()
-                        reader.onload = e => {
-                            addGpxToMap(e.target.result as string, map, 0);
+                            reduceGpx(file)
+                                .then(gpxDoc => {
+                                    addGpxToMap(gpxDoc, map, 0);
+                                    const gpxText = new XMLSerializer().serializeToString(gpxDoc);
+                                    console.log('gpxText ' + file.name, {gpxText})
+                                    return uploadGpxText(file.name, gpxText);
+                                })
                         }
-                        reader.readAsText(file)
-                    });
+                    );
 
                     fetch(`api/getGpxFileList`)
                         .then(res => res.json())
@@ -134,5 +139,6 @@ export default function MyMap(opts: MyMapContainerProps) {
             }
             }
         </DroppedMapsContext.Consumer>
-    );
+    )
+        ;
 }
