@@ -3,6 +3,7 @@ import React from 'react';
 import {Map as LeafletMap} from 'leaflet';
 import {GpxFileList} from '../pages/api/getGpxFileList';
 import {createLeafletGpx} from '../lib/leafletgpx';
+import {DroppedMapsContext} from '../pages';
 
 
 const colors = [
@@ -39,76 +40,99 @@ const colors = [
     '#f30011'
 ]
 
+export interface MyMapContainerProps extends MapContainerProps {
+
+}
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
-export default function MyMap(opts: MapContainerProps) {
+export default function MyMap(opts: MyMapContainerProps) {
+
+
+    function addGpxToMap(gpxFile: string, map: LeafletMap, index: number) {
+        const gpxOptions = {
+            async: true,
+            marker_options: {
+                startIconUrl: '', //'img/pin-icon-start.png',
+                endIconUrl: '', // 'img/pin-icon-end.png',
+                shadowUrl: '' // 'img/pin-shadow.png'
+            },
+            polyline_options: {
+                color: colors[(index * 37) % colors.length],
+                opacity: 0.75,
+                weight: 3,
+                fill: true,
+                fillOpacity: 0.1
+            }
+        };
+
+        const lgpx = createLeafletGpx(gpxFile, gpxOptions)
+        lgpx['on']('loaded', function (e) {
+            const gpx = e.target;
+            //  mymap.fitBounds(e.target.getBounds());
+            const link = gpx.get_link();
+            let author = gpx.get_author();
+            const popupText = '<b>' + gpx.get_name() + '</b>' +
+                (author ? '<br><i>' + author + '</i>' : '') +
+                (link ? '<br><a href="' + link + '" target="_blank">Link</a>' : '');
+            console.log(popupText, {gpx})
+            gpx.bindPopup(
+                popupText
+            );
+        }).addTo(map);
+    }
+
     function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileList) {
         gpxFileList.forEach((gpxFile, index) => {
-            const gpxOptions = {
-                async: true,
-                marker_options: {
-                    startIconUrl: '', //'img/pin-icon-start.png',
-                    endIconUrl: '', // 'img/pin-icon-end.png',
-                    shadowUrl: '' // 'img/pin-shadow.png'
-                },
-                polyline_options: {
-                    color: colors[(index * 37) % colors.length],
-                    opacity: 0.75,
-                    weight: 3,
-                    fill: true,
-                    fillOpacity: 0.1
-                }
-            };
-            const createLeafletGpxFn = createLeafletGpx;
-            const lgpx = createLeafletGpxFn(gpxFile.url, gpxOptions)
-            lgpx['on']('loaded', function (e) {
-                const gpx = e.target;
-                //  mymap.fitBounds(e.target.getBounds());
-                const link = gpx.get_link();
-                let author = gpx.get_author();
-                const popupText = '<b>' + gpx.get_name() + '</b>' +
-                    (author ? '<br><i>' + author + '</i>' : '') +
-                    (link ? '<br><a href="' + link + '" target="_blank">Link</a>' : '');
-                console.log(popupText, {gpx})
-                gpx.bindPopup(
-                    popupText
-                );
-            }).addTo(map);
+            addGpxToMap(gpxFile.url, map, index);
         });
     }
 
-    function fillMap(map: LeafletMap) {
-        console.log('fillMap', {map})
-        fetch(`api/getGpxFileList`)
-            .then(res => res.json())
-            .then(data => {
-                    const gpxFileList = data as GpxFileList
-                    console.log('getList', {gpxFileList})
-                    addGpxsToMap(map, gpxFileList)
-                }
-            );
-
-    }
-
-    const mapOpts: MapContainerProps = {
-        ...opts, whenCreated: map => {
-            if (opts.whenCreated) {
-                opts.whenCreated(map)
-            }
-            fillMap(map);
-        }
-    }
     return (
-        <MapContainer {...mapOpts}>
-            <TileLayer
-                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {/*<Marker position={position}>*/}
-            {/*    <Popup>*/}
-            {/*        A pretty CSS3 popup. <br/> Easily customizable.*/}
-            {/*    </Popup>*/}
-            {/*</Marker>*/}
-        </MapContainer>
+        <DroppedMapsContext.Consumer>
+            {({droppedGpxFile$}) => {
+                function fillMap(map: LeafletMap) {
+                    console.log('fillMap', {map});
+                    droppedGpxFile$.subscribe(file => {
+                        const reader = new FileReader()
+                        reader.onload = e => {
+                            addGpxToMap(e.target.result as string, map, 0);
+                        }
+                        reader.readAsText(file)
+                    });
+
+                    fetch(`api/getGpxFileList`)
+                        .then(res => res.json())
+                        .then(data => {
+                                const gpxFileList = data as GpxFileList
+                                console.log('getList', {gpxFileList})
+                                addGpxsToMap(map, gpxFileList)
+                            }
+                        );
+
+                }
+
+                const mapOpts: MapContainerProps = {
+                    ...opts, whenCreated: map => {
+                        if (opts.whenCreated) {
+                            opts.whenCreated(map)
+                        }
+                        fillMap(map);
+                    }
+                }
+                return <MapContainer {...mapOpts}>
+                    <TileLayer
+                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {/*<Marker position={position}>*/}
+                    {/*    <Popup>*/}
+                    {/*        A pretty CSS3 popup. <br/> Easily customizable.*/}
+                    {/*    </Popup>*/}
+                    {/*</Marker>*/}
+                </MapContainer>;
+
+            }
+            }
+        </DroppedMapsContext.Consumer>
     );
 }
