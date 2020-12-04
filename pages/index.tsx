@@ -1,35 +1,42 @@
 import Head from 'next/head'
 import React from 'react';
 import dynamic from 'next/dynamic';
-import {uploadGpx} from '../lib/upload';
 
 const MyMap = dynamic(
     () => import('../components/myMap'),
     {ssr: false}
 );
 
-export default function Home() {
-    const position = [48.864716, 2.349014] as [number, number]
-    const zoom = 13
+class Home extends React.Component {
+    position = [48.864716, 2.349014] as [number, number]
+    zoom = 13
 
-    async function dropHandler(event: React.DragEvent<HTMLDivElement>) {
-        console.log('File(s) dropped ', {event, f: event.dataTransfer.files[0]});
+    async dropHandler(event: React.DragEvent<HTMLDivElement>) {
+        let file = event.dataTransfer.files[0];
+        console.log('File(s) dropped ', {event, f: file});
         event.preventDefault();
-        await uploadGpx(event.dataTransfer.files[0]);
+
+        // await uploadGpx(file);
     }
 
-    function dragOverHandler(event: React.DragEvent<HTMLDivElement>) {
+    dragOverHandler(event: React.DragEvent<HTMLDivElement>) {
         event.preventDefault();
     }
 
-    return (
-        <div>
+    render() {
+        return <div>
             <Head>
                 <title>1km PSC</title>
             </Head>
-            <div onDrop={dropHandler} onDragOver={dragOverHandler}>
-                <MyMap center={position} zoom={zoom} style={{height: '100vh', width: '100vw'}}/>
+            <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)}>
+                <MyMap center={this.position} zoom={this.zoom} style={{height: '100vh', width: '100vw'}}/>
             </div>
-        </div>
-    )
+        </div>;
+    }
 }
+
+const indexHome = () => {
+    return <Home/>;
+}
+
+export default indexHome;
