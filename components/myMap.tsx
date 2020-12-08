@@ -42,6 +42,12 @@ const colors = [
     '#f30011'
 ]
 
+let colorIndex = 0;
+
+function getIndexedColor() {
+    return colors[((colorIndex++) * 37) % colors.length];
+}
+
 export interface MyMapContainerProps extends MapContainerProps {
 
 }
@@ -50,7 +56,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 export default function MyMap(opts: MyMapContainerProps) {
 
 
-    function addGpxToMap(gpxFile: string | Document, map: LeafletMap, index: number) {
+    function addGpxToMap(gpxFile: string | Document, map: LeafletMap) {
         const gpxOptions = {
             async: true,
             marker_options: {
@@ -59,7 +65,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                 shadowUrl: '' // 'img/pin-shadow.png'
             },
             polyline_options: {
-                color: colors[(index * 37) % colors.length],
+                color: getIndexedColor(),
                 opacity: 0.75,
                 weight: 3,
                 fill: true,
@@ -85,7 +91,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileList) {
         gpxFileList.forEach((gpxFile, index) => {
-            addGpxToMap(gpxFile.url, map, index);
+            addGpxToMap(gpxFile.url, map);
         });
     }
 
@@ -93,13 +99,13 @@ export default function MyMap(opts: MyMapContainerProps) {
         <DroppedMapsContext.Consumer>
             {({droppedGpxFile$}) => {
                 function fillMap(map: LeafletMap) {
-                    console.log('fillMap', {map});
+                    // console.log('fillMap', {map});
                     droppedGpxFile$.subscribe(file => {
                             reduceGpx(file)
                                 .then(gpxDoc => {
-                                    addGpxToMap(gpxDoc, map, 0);
+                                    addGpxToMap(gpxDoc, map);
                                     const gpxText = new XMLSerializer().serializeToString(gpxDoc);
-                                    console.log('gpxText ' + file.name, {gpxText})
+                                    // console.log('gpxText ' + file.name, {gpxText})
                                     return uploadGpxText(file.name, gpxText);
                                 })
                         }
@@ -135,10 +141,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     {/*    </Popup>*/}
                     {/*</Marker>*/}
                 </MapContainer>;
-
-            }
-            }
+            }}
         </DroppedMapsContext.Consumer>
-    )
-        ;
+    );
 }
