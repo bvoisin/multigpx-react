@@ -6,7 +6,7 @@ import {createLeafletGpx} from '../lib/leafletgpx';
 import {DroppedMapsContext} from '../pages';
 import {reduceGpx} from '../lib/reduceGpx';
 import {uploadGpxText} from '../lib/upload';
-
+import ReactDOMServer from 'react-dom/server';
 
 const colors = [
     '#7c7c7c',
@@ -77,13 +77,14 @@ export default function MyMap(opts: MyMapContainerProps) {
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
             //  mymap.fitBounds(e.target.getBounds());
-            gpx.bindPopup(gpx => {
+            gpx.bindPopup(layer => {
                 const link = gpx.get_link();
                 let author = gpx.get_author();
-                const popupText = '<b>' + gpx.get_name() + '</b>' +
-                    (author ? '<br><i>' + author + '</i>' : '') +
-                    (link ? '<br><a href="' + link + '" target="_blank">Link</a>' : '');
-                return popupText;
+                return ReactDOMServer.renderToString(<div>
+                    <b>{gpx.get_name()}</b>
+                    {author ? <b><i>{author}</i></b> : null}
+                    {link ? <><br/><a href={link} target="_blank"></a></> : null}
+                </div>);
             });
         }).addTo(map);
     }
