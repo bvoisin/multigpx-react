@@ -2,18 +2,18 @@ import * as aws from 'aws-sdk';
 import {NextApiRequest, NextApiResponse} from 'next';
 import {loginToAws} from './loginToAws';
 
-export interface GpxFileInfo {
+export interface GpxFileRef {
     key: string;
     url: string;
 }
 
-export type GpxFileList = GpxFileInfo[];
+export type GpxFileRefs = GpxFileRef[];
 
-async function listFiles$(): Promise<GpxFileList> {
+async function listFiles$(): Promise<GpxFileRefs> {
     if (process.env.NO_FILES) {
         return Promise.resolve([]);
     } else {
-        return new Promise<GpxFileInfo[]>((resolve) => {
+        return new Promise<GpxFileRef[]>((resolve) => {
             loginToAws();
             const s3 = new aws.S3();
             s3.listObjects({Delimiter: '/', Prefix: process.env.FILE_PREFIX, Bucket: process.env.BUCKET_NAME}, function (err, data) {
@@ -23,7 +23,7 @@ async function listFiles$(): Promise<GpxFileList> {
                     .filter(key => key.endsWith('.gpx'))
                     .map(key =>
                         s3.getSignedUrlPromise('getObject', {Bucket: process.env.BUCKET_NAME, Key: key})
-                            .then(url => ({key, url} as GpxFileInfo))
+                            .then(url => ({key, url} as GpxFileRef))
                     )
                 resolve(Promise.all(fileList$))
             });
@@ -31,7 +31,7 @@ async function listFiles$(): Promise<GpxFileList> {
     }
 }
 
-export default async (_: NextApiRequest, res: NextApiResponse<GpxFileList>) => {
+export default async (_: NextApiRequest, res: NextApiResponse<GpxFileRefs>) => {
     // res.status(200).json(['a', 'b']);
     const fileList = await listFiles$()
     console.log('lst ', {fileList})

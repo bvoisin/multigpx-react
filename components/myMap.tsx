@@ -1,7 +1,7 @@
 import {MapContainer, MapContainerProps, TileLayer} from 'react-leaflet';
 import React from 'react';
 import {Map as LeafletMap} from 'leaflet';
-import {GpxFileList} from '../pages/api/getGpxFileList';
+import {GpxFileRefs} from '../pages/api/getGpxFileList';
 import {createLeafletGpx} from '../lib/leafletgpx';
 import {DroppedMapsContext} from '../pages';
 import {reduceGpx} from '../lib/reduceGpx';
@@ -77,19 +77,18 @@ export default function MyMap(opts: MyMapContainerProps) {
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
             //  mymap.fitBounds(e.target.getBounds());
-            const link = gpx.get_link();
-            let author = gpx.get_author();
-            const popupText = '<b>' + gpx.get_name() + '</b>' +
-                (author ? '<br><i>' + author + '</i>' : '') +
-                (link ? '<br><a href="' + link + '" target="_blank">Link</a>' : '');
-            console.log(popupText, {gpx})
-            gpx.bindPopup(
-                popupText
-            );
+            gpx.bindPopup(gpx => {
+                const link = gpx.get_link();
+                let author = gpx.get_author();
+                const popupText = '<b>' + gpx.get_name() + '</b>' +
+                    (author ? '<br><i>' + author + '</i>' : '') +
+                    (link ? '<br><a href="' + link + '" target="_blank">Link</a>' : '');
+                return popupText;
+            });
         }).addTo(map);
     }
 
-    function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileList) {
+    function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs) {
         gpxFileList.forEach((gpxFile, index) => {
             addGpxToMap(gpxFile.url, map);
         });
@@ -114,7 +113,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     fetch(`api/getGpxFileList`)
                         .then(res => res.json())
                         .then(data => {
-                                const gpxFileList = data as GpxFileList
+                                const gpxFileList = data as GpxFileRefs
                                 console.log('getList', {gpxFileList})
                                 addGpxsToMap(map, gpxFileList)
                             }

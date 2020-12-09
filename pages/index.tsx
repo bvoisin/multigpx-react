@@ -2,22 +2,32 @@ import Head from 'next/head'
 import React from 'react';
 import dynamic from 'next/dynamic';
 import {Observable, Subject} from 'rxjs';
+import FilePopup from 'components/filePopup';
 
 const MyMap = dynamic(
-    () => import('../components/myMap'),
+    () => import('components/myMap'),
     {ssr: false}
 );
 
 export interface DroppedMapsContextType {
     droppedGpxFile$: Observable<File>;
+    showFile: (file: GpxFileInfo) => void
 }
 
-export const DroppedMapsContext = React.createContext<DroppedMapsContextType>({droppedGpxFile$: new Subject()});
+export interface GpxFileInfo {
+    fileUrl: string;
+    athleteName: string;
+    name: string;
+    doc: Document;
+}
+
+export const DroppedMapsContext = React.createContext<DroppedMapsContextType>(undefined);
 
 interface HomeState {
     droppedMapsContext: DroppedMapsContextType;
     position: [number, number];
     zoom: number;
+    shownFile?: GpxFileInfo
 }
 
 class Home extends React.Component<{}, HomeState> {
@@ -26,7 +36,18 @@ class Home extends React.Component<{}, HomeState> {
 
     constructor(props, context) {
         super(props, context);
-        this.state = {droppedMapsContext: {droppedGpxFile$: this.droppedGpxFile$}, position: [48.864716, 2.349014], zoom: 13}
+        this.state = {
+            droppedMapsContext: {
+                droppedGpxFile$: this.droppedGpxFile$,
+                showFile: f => this.showFile(f)
+            },
+            position: [48.864716, 2.349014],
+            zoom: 13,
+        }
+    }
+
+    showFile(shownFile: GpxFileInfo) {
+        this.setState({shownFile})
     }
 
     async dropHandler(event: React.DragEvent<HTMLDivElement>) {
@@ -52,6 +73,7 @@ class Home extends React.Component<{}, HomeState> {
                     <MyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
                 </div>
             </DroppedMapsContext.Provider>
+            <FilePopup file={this.state.shownFile} closePopup={() => this.showFile(null)}></FilePopup>
         </div>;
     }
 }
