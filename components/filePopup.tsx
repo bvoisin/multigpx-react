@@ -1,7 +1,6 @@
-import Dialog from '@material-ui/core/Dialog';
 import React from 'react';
-import {DialogTitle} from '@material-ui/core';
 import {GpxFileInfo} from 'pages';
+import {Dialog, DialogTitle} from '@material-ui/core';
 
 export type FilePopupProps = { file: GpxFileInfo, closePopup?: () => void };
 
@@ -12,12 +11,15 @@ export default class FilePopup extends React.Component<FilePopupProps> {
     }
 
     render() {
-
-        return (
-            <Dialog onClose={e => this.close()} open={!!this.props.file}>
+        const f = this.props.file
+        console.log('FilePopup', f)
+        return f ? (
+            <Dialog onClose={e => this.close()} open={true}>
                 <DialogTitle id="simple-dialog-title">Set backup account</DialogTitle>
-                TODO
+                <div>{f.fileName}</div>
+                <div>{f.traceName}</div>
+                <div>{f.athleteName}</div>
             </Dialog>
-        );
+        ) : null;
     }
 }

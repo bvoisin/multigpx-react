@@ -3,8 +3,8 @@ import {NextApiRequest, NextApiResponse} from 'next';
 import {loginToAws} from './loginToAws';
 
 export interface GpxFileRef {
-    key: string;
-    url: string;
+    fileName: string;
+    downloadUrl: string;
 }
 
 export type GpxFileRefs = GpxFileRef[];
@@ -23,7 +23,7 @@ async function listFiles$(): Promise<GpxFileRefs> {
                     .filter(key => key.endsWith('.gpx'))
                     .map(key =>
                         s3.getSignedUrlPromise('getObject', {Bucket: process.env.BUCKET_NAME, Key: key})
-                            .then(url => ({key, url} as GpxFileRef))
+                            .then(url => ({fileName: key, downloadUrl: url} as GpxFileRef))
                     )
                 resolve(Promise.all(fileList$))
             });

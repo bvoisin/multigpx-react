@@ -1,12 +1,12 @@
 import {MapContainer, MapContainerProps, TileLayer} from 'react-leaflet';
 import React from 'react';
 import {Map as LeafletMap} from 'leaflet';
-import {GpxFileRefs} from '../pages/api/getGpxFileList';
-import {createLeafletGpx} from '../lib/leafletgpx';
-import {DroppedMapsContext} from '../pages';
-import {reduceGpx} from '../lib/reduceGpx';
-import {uploadGpxText} from '../lib/upload';
-import ReactDOMServer from 'react-dom/server';
+import {GpxFileRefs} from 'pages/api/getGpxFileList';
+import {createLeafletGpx} from 'lib/leafletgpx';
+import {DroppedMapsContext, GpxFileInfo} from 'pages';
+import {reduceGpx} from 'lib/reduceGpx';
+import {uploadGpxText} from 'lib/upload';
+import {parseToGpxFileInfo, parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
 
 const colors = [
     '#7c7c7c',
@@ -56,7 +56,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 export default function MyMap(opts: MyMapContainerProps) {
 
 
-    function addGpxToMap(gpxFile: string | Document, map: LeafletMap) {
+    function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
         const gpxOptions = {
             async: true,
             marker_options: {
@@ -73,37 +73,47 @@ export default function MyMap(opts: MyMapContainerProps) {
             }
         };
 
-        const lgpx = createLeafletGpx(gpxFile, gpxOptions)
+        const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
             //  mymap.fitBounds(e.target.getBounds());
-            gpx.bindPopup(layer => {
-                const link = gpx.get_link();
-                let author = gpx.get_author();
-                return ReactDOMServer.renderToString(<div>
-                    <b>{gpx.get_name()}</b>
-                    {author ? <b><i>{author}</i></b> : null}
-                    {link ? <><br/><a href={link} target="_blank"></a></> : null}
-                </div>);
-            });
+
+            gpx.on('click', (e) => {
+                showFile(gpxFile)
+            })
+            // gpx.clickevent bindPopup(layer => {
+            //     const link = gpxFile.link;
+            //     let author = gpxFile.athleteName;
+            //     ReactDOM.render(<div>
+            //         <b>{gpxFile.traceName}</b>
+            //         {author ? <b><i>{author}</i></b> : null}
+            //         {link ? <><br/><a href={link} target="_blank">Link</a></> : null}
+            //     </div>, layer.getPopup().getElement());
+            //     return;
+            // });
         }).addTo(map);
     }
 
-    function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs) {
-        gpxFileList.forEach((gpxFile, index) => {
-            addGpxToMap(gpxFile.url, map);
+    async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
+        const promises = gpxFileList.map((gpxFileRef, index) => {
+            return parseToGpxFileInfo2(gpxFileRef).then(gpxFileInfo => {
+                addGpxToMap(gpxFileInfo, map, showFile);
+                return gpxFileInfo
+            });
         });
+        return Promise.all(promises)
     }
 
     return (
         <DroppedMapsContext.Consumer>
-            {({droppedGpxFile$}) => {
+            {({droppedGpxFile$, showFile}) => {
                 function fillMap(map: LeafletMap) {
                     // console.log('fillMap', {map});
                     droppedGpxFile$.subscribe(file => {
                             reduceGpx(file)
                                 .then(gpxDoc => {
-                                    addGpxToMap(gpxDoc, map);
+                                    const gpxFileInfo = parseToGpxFileInfo(gpxDoc, file.name);
+                                    addGpxToMap(gpxFileInfo, map, showFile);
                                     const gpxText = new XMLSerializer().serializeToString(gpxDoc);
                                     // console.log('gpxText ' + file.name, {gpxText})
                                     return uploadGpxText(file.name, gpxText);
@@ -115,8 +125,8 @@ export default function MyMap(opts: MyMapContainerProps) {
                         .then(res => res.json())
                         .then(data => {
                                 const gpxFileList = data as GpxFileRefs
-                                console.log('getList', {gpxFileList})
-                                addGpxsToMap(map, gpxFileList)
+                                console.log('getList2', {gpxFileList})
+                                return addGpxsToMap(map, gpxFileList, showFile)
                             }
                         );
 

@@ -14,11 +14,9 @@ export interface DroppedMapsContextType {
     showFile: (file: GpxFileInfo) => void
 }
 
-export interface GpxFileInfo {
-    fileUrl: string;
-    athleteName: string;
-    name: string;
-    doc: Document;
+export class GpxFileInfo {
+    constructor(readonly fileName: string, readonly doc: Document, readonly traceName: string, readonly athleteName: string, readonly link?: string) {
+    }
 }
 
 export const DroppedMapsContext = React.createContext<DroppedMapsContextType>(undefined);

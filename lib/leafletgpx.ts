@@ -386,7 +386,13 @@ const L_GPX = L.FeatureGroup.extend({
             _this.fire('loaded', {layers: layers, element: gpx});
         }
         if (input instanceof Document) {
-            cb(input, options);
+            if (async) {
+                setTimeout(function () {
+                    cb(input, options);
+                });
+            } else {
+                cb(input, options);
+            }
         } else if (input.substr(0, 1) === '<') { // direct XML has to start with a <
             const parser = new DOMParser();
             if (async) {
@@ -427,7 +433,7 @@ const L_GPX = L.FeatureGroup.extend({
         }
 
         const trk = xml.getElementsByTagName('trk')[0] || xml.getElementsByTagName('route')[0];
-        const link = trk.getElementsByTagName('link')[0] || xml.getElementsByTagName('link')[0];
+        const link = trk.getElementsByTagName('link?')[0] || xml.getElementsByTagName('link?')[0];
         if (link) {
             this._info.link = link.attributes['href'].textContent;
         }
