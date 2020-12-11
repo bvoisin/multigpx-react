@@ -1,7 +1,7 @@
 import React from 'react';
 import {GpxFileInfo} from 'pages';
-import {Dialog, DialogTitle} from '@material-ui/core';
-import {Field, Form, Formik} from 'formik';
+import {Dialog, DialogTitle, TextField} from '@material-ui/core';
+import {Form, Formik} from 'formik';
 import {updateGpxMetaInfo} from 'lib/parseToGpxFileInfo';
 
 export type FilePopupProps = { file: GpxFileInfo, closePopup?: () => void };
@@ -14,44 +14,53 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
         this.state = {file: props.file};
     }
 
-    close() {
-        console.log('Close');
-        this.props.closePopup();
-    }
-
     render() {
         const f = this.props.file
+        if (!f) {
+            return null;
+        }
         console.log('FilePopup', f)
-        return f ? (
-            <Formik initialValues={{...f}}
+        return <Formik initialValues={{...f}}
 
-                    onSubmit={(values => {
-                        updateGpxMetaInfo(f, values);
-                    })}
-            >
-                <Dialog onClose={e => this.close()} open={true}>
+                       onSubmit={values => {
+                           this.save(f, values);
+                       }}
+        >
+            {props =>
+                <Dialog onClose={e => this.props.closePopup()} open={true}>
                     <DialogTitle id="simple-dialog-title">{f.traceName}</DialogTitle>
-                    <Form>
-                        <Field
+                    <Form onSubmit={props.handleSubmit}>
+                        <TextField
                             id="traceName"
                             name="traceName"
-                            type="text">
-                        </Field>
-                        <Field
+                            label="Trace Name"
+                            fullWidth
+                            value={props.values.traceName}
+                            onChange={props.handleChange}/>
+                        <TextField
                             id="athleteName"
                             name="athleteName"
-                            type="text">
-                        </Field>
-                        <Field
+                            label="Athlete Name"
+                            type="text"
+                            fullWidth
+                            value={props.values.athleteName}
+                            onChange={props.handleChange}/>
+                        <TextField
                             id="link"
                             name="link"
-                            type="text">
-                        </Field>
+                            type="text"
+                            label="Link (Strava or other)"
+                            fullWidth
+                            value={props.values.link}
+                            onChange={props.handleChange}/>
                         <button type="submit">Submit</button>
                     </Form>
                 </Dialog>
-            </Formik>
+            }
+        </Formik>;
+    }
 
-        ) : null;
+    private save(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
+        updateGpxMetaInfo(f, values);
     }
 }

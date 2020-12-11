@@ -43,8 +43,10 @@ export async function parseToGpxFileInfo2(gpxFileUrl: GpxFileRef | File): Promis
 
 export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
     function setValue(xPath: string, v: string) {
-        const node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        node.textContent = v;
+        if (v !== undefined) {
+            const node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            node.textContent = v;
+        }
     }
 
     setValue(athleteNameXPath, values.athleteName);
