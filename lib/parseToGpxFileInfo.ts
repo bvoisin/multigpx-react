@@ -41,7 +41,7 @@ export async function parseToGpxFileInfo2(gpxFileUrl: GpxFileRef | File): Promis
     return parseToGpxFileInfo(doc, f.fileName);
 }
 
-export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
+export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {
     function setValue(xPath: string, v: string) {
         if (v !== undefined) {
             const node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -56,5 +56,5 @@ export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>) 
     const asText = new XMLSerializer().serializeToString(f.doc)
 
     console.log('New doc ', {newFile, asText});
-    uploadGpxText(f.fileName, asText);
+    return uploadGpxText(f.fileName, asText).then(()=>newFile);
 }

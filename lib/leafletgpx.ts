@@ -727,9 +727,9 @@ const L_GPX = L.FeatureGroup.extend({
     }
 });
 
-type C = (new (gpx, options) => typeof L_GPX)
+type C_LGPX = (new (gpx, options) => (typeof L_GPX))
 
-export function createLeafletGpx(gpx: string | Document, options) {
-    const lgpx = new (L_GPX as C)(gpx, options);
-    return lgpx;
+export function createLeafletGpx(gpx: string | Document, options): L.FeatureGroup {
+    const lgpx = new (L_GPX as C_LGPX)(gpx, options);
+    return lgpx as any as L.FeatureGroup;
 }

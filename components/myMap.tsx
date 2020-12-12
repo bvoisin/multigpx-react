@@ -1,12 +1,10 @@
 import {MapContainer, MapContainerProps, TileLayer} from 'react-leaflet';
 import React from 'react';
-import {Map as LeafletMap} from 'leaflet';
+import {Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/leafletgpx';
 import {DroppedMapsContext, GpxFileInfo} from 'pages';
-import {reduceGpx} from 'lib/reduceGpx';
-import {uploadGpxText} from 'lib/upload';
-import {parseToGpxFileInfo, parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
+import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
 
 const colors = [
     '#7c7c7c',
@@ -55,6 +53,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
 
+    const layersByGpxFileName = new Map<string, Layer>();
 
     function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
         const gpxOptions = {
@@ -73,6 +72,11 @@ export default function MyMap(opts: MyMapContainerProps) {
             }
         };
 
+        let previousLayer = layersByGpxFileName.get(gpxFile.fileName);
+        if (previousLayer) {
+            map.removeLayer(previousLayer);
+            layersByGpxFileName.delete(gpxFile.fileName)
+        }
         const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
@@ -92,6 +96,7 @@ export default function MyMap(opts: MyMapContainerProps) {
             //     return;
             // });
         }).addTo(map);
+        layersByGpxFileName.set(gpxFile.fileName, lgpx as Layer);
     }
 
     async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
@@ -106,27 +111,19 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     return (
         <DroppedMapsContext.Consumer>
-            {({droppedGpxFile$, showFile}) => {
+            {({newGpxFilesToDraw$, showFileInfo}) => {
                 function fillMap(map: LeafletMap) {
                     // console.log('fillMap', {map});
-                    droppedGpxFile$.subscribe(file => {
-                            reduceGpx(file)
-                                .then(gpxDoc => {
-                                    const gpxFileInfo = parseToGpxFileInfo(gpxDoc, file.name);
-                                    addGpxToMap(gpxFileInfo, map, showFile);
-                                    const gpxText = new XMLSerializer().serializeToString(gpxDoc);
-                                    // console.log('gpxText ' + file.name, {gpxText})
-                                    return uploadGpxText(file.name, gpxText);
-                                })
-                        }
-                    );
+                    newGpxFilesToDraw$.subscribe(gpxFileInfo => {
+                        addGpxToMap(gpxFileInfo, map, showFileInfo);
+                    });
 
                     fetch(`api/getGpxFileList`)
                         .then(res => res.json())
                         .then(data => {
                                 const gpxFileList = data as GpxFileRefs
                                 console.log('getList2', {gpxFileList})
-                                return addGpxsToMap(map, gpxFileList, showFile)
+                                return addGpxsToMap(map, gpxFileList, showFileInfo)
                             }
                         );
 
