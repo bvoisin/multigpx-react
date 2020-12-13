@@ -85,16 +85,14 @@ export default function MyMap(opts: MyMapContainerProps) {
             gpx.on('click', (e) => {
                 showFile(gpxFile)
             })
-            // gpx.clickevent bindPopup(layer => {
-            //     const link = gpxFile.link;
-            //     let author = gpxFile.athleteName;
-            //     ReactDOM.render(<div>
-            //         <b>{gpxFile.traceName}</b>
-            //         {author ? <b><i>{author}</i></b> : null}
-            //         {link ? <><br/><a href={link} target="_blank">Link</a></> : null}
-            //     </div>, layer.getPopup().getElement());
-            //     return;
-            // });
+            gpx.bindTooltip(layer => {
+                const link = gpxFile.link;
+                let author = gpxFile.athleteName;
+                return `<div>                    <b>${gpxFile.traceName}</b>` +
+                    (author ? `<br/><b><i>${author}</i></b>` : '') +
+                    (author ? `<br/><a href=${link}>Link</a>` : '') +
+                    '</div>';
+            });
         }).addTo(map);
         layersByGpxFileName.set(gpxFile.fileName, lgpx as Layer);
     }
