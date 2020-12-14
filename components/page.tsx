@@ -1,39 +1,32 @@
 import Head from 'next/head'
 import React from 'react';
 import dynamic from 'next/dynamic';
-import {merge, Observable, Subject} from 'rxjs';
+import {merge, Subject} from 'rxjs';
 import FilePopup from 'components/filePopup';
 import {reduceGpx} from 'lib/reduceGpx';
 import {switchMap} from 'rxjs/operators';
 import {parseToGpxFileInfo} from 'lib/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/upload';
+import {GpxFileInfo} from 'pages/gpxFileInfo';
+import {DroppedMapsContext, DroppedMapsContextType} from 'pages/droppedMapsContext';
 
 const MyMap = dynamic(
     () => import('components/myMap'),
     {ssr: false}
 );
 
-export interface DroppedMapsContextType {
-    newGpxFilesToDraw$: Observable<GpxFileInfo>;
-    newGpxFileToDraw: (file: GpxFileInfo) => void;
-    showFileInfo: (file: GpxFileInfo) => void
+interface PageProps {
+    fileDirectory: string;
 }
 
-export class GpxFileInfo {
-    constructor(readonly fileName: string, readonly doc: Document, readonly traceName: string, readonly athleteName: string, readonly link?: string) {
-    }
-}
-
-export const DroppedMapsContext = React.createContext<DroppedMapsContextType>(undefined);
-
-interface HomeState {
+interface PageState {
     droppedMapsContext: DroppedMapsContextType;
     position: [number, number];
     zoom: number;
     shownFile?: GpxFileInfo
 }
 
-class Home extends React.Component<{}, HomeState> {
+class Page extends React.Component<PageProps, PageState> {
 
     private readonly droppedGpxFile$ = new Subject<File>();
 
@@ -53,7 +46,8 @@ class Home extends React.Component<{}, HomeState> {
             droppedMapsContext: {
                 newGpxFilesToDraw$: this.newGpxFilesToDraw$,
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
-                showFileInfo: f => this.showFileInfo(f)
+                showFileInfo: f => this.showFileInfo(f),
+                fileDirectory: props.fileDirectory
             },
             position: [48.864716, 2.349014],
             zoom: 13,
@@ -78,22 +72,18 @@ class Home extends React.Component<{}, HomeState> {
     }
 
     render() {
-        return <div>
-            <Head>
-                <title>1km PSC</title>
-            </Head>
-            <DroppedMapsContext.Provider value={this.state.droppedMapsContext}>
-                <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)}>
-                    <MyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
-                </div>
-                <FilePopup file={this.state.shownFile} closePopup={() => this.showFileInfo(null)}></FilePopup>
-            </DroppedMapsContext.Provider>
+        return this.state && <div>
+          <Head>
+            <title>{this.state.droppedMapsContext.fileDirectory}</title>
+          </Head>
+          < DroppedMapsContext.Provider value={this.state.droppedMapsContext}>
+            <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)}>
+              <MyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
+            </div>
+            <FilePopup file={this.state.shownFile} closePopup={() => this.showFileInfo(null)}/>
+          </DroppedMapsContext.Provider>
         </div>;
     }
 }
 
-const indexHome = () => {
-    return <Home/>;
-}
-
-export default indexHome;
+export default Page;

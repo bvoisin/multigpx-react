@@ -1,6 +1,6 @@
-import {GpxFileInfo} from 'pages';
+import {GpxFileInfo} from 'pages/gpxFileInfo';
 
-export async function uploadGpx(file: File|GpxFileInfo) {
+export async function uploadGpx(file: File | GpxFileInfo) {
     if (file instanceof File) {
         const filename = encodeURIComponent(file.name);
         return uploadGpxText(filename, file);

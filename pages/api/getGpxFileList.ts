@@ -1,6 +1,7 @@
 import * as aws from 'aws-sdk';
 import {NextApiRequest, NextApiResponse} from 'next';
 import {loginToAws} from './loginToAws';
+import {getFilePrefix} from 'pages/api/getFilePrefix';
 
 export interface GpxFileRef {
     fileName: string;
@@ -9,12 +10,10 @@ export interface GpxFileRef {
 
 export type GpxFileRefs = GpxFileRef[];
 
-async function listFiles$(): Promise<GpxFileRefs> {
+async function listFiles$(fileNamePrefix: string): Promise<GpxFileRefs> {
     if (process.env.NO_FILES) {
         return Promise.resolve([]);
     } else {
-        const fileNamePrefix = process.env.FILE_PREFIX;
-
         return new Promise<GpxFileRef[]>((resolve) => {
             loginToAws();
             const s3 = new aws.S3();
@@ -35,9 +34,10 @@ async function listFiles$(): Promise<GpxFileRefs> {
     }
 }
 
-export default async (_: NextApiRequest, res: NextApiResponse<GpxFileRefs>) => {
+export default async (request: NextApiRequest, res: NextApiResponse<GpxFileRefs>) => {
     // res.status(200).json(['a', 'b']);
-    const fileList = await listFiles$()
-    console.log('lst ', {fileList})
+    const filePrefix = getFilePrefix(request)
+    const fileList = await listFiles$(filePrefix)
+    console.log(`lst ${filePrefix}:`, {fileList})
     res.status(200).json(fileList);
 };

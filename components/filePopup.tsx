@@ -1,8 +1,9 @@
 import React from 'react';
-import {DroppedMapsContext, GpxFileInfo} from 'pages';
 import {Dialog, DialogContent, DialogTitle, TextField} from '@material-ui/core';
 import {Form, Formik} from 'formik';
 import {updateGpxMetaInfo} from 'lib/parseToGpxFileInfo';
+import {GpxFileInfo} from 'pages/gpxFileInfo';
+import {DroppedMapsContext} from 'pages/droppedMapsContext';
 
 export type FilePopupProps = { file: GpxFileInfo, closePopup?: () => void };
 

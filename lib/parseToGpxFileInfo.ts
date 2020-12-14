@@ -1,6 +1,6 @@
 import {GpxFileRef} from 'pages/api/getGpxFileList';
-import {GpxFileInfo} from 'pages';
 import {uploadGpxText} from 'lib/upload';
+import {GpxFileInfo} from 'pages/gpxFileInfo';
 
 async function getGpxXmlText(gpxFileUrl: GpxFileRef | File): Promise<{ doc: Document, fileName: string }> {
     if (gpxFileUrl instanceof File) {
@@ -56,5 +56,5 @@ export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>):
     const asText = new XMLSerializer().serializeToString(f.doc)
 
     console.log('New doc ', {newFile, asText});
-    return uploadGpxText(f.fileName, asText).then(()=>newFile);
+    return uploadGpxText(f.fileName, asText).then(() => newFile);
 }

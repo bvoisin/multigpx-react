@@ -3,8 +3,9 @@ import React from 'react';
 import {Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/leafletgpx';
-import {DroppedMapsContext, GpxFileInfo} from 'pages';
 import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
+import {GpxFileInfo} from 'pages/gpxFileInfo';
+import {DroppedMapsContext} from 'pages/droppedMapsContext';
 
 const colors = [
     '#7c7c7c',
@@ -109,14 +110,18 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     return (
         <DroppedMapsContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo}) => {
+            {({newGpxFilesToDraw$, showFileInfo, fileDirectory}) => {
+                console.log('myMap ' + fileDirectory)
+
                 function fillMap(map: LeafletMap) {
                     // console.log('fillMap', {map});
                     newGpxFilesToDraw$.subscribe(gpxFileInfo => {
                         addGpxToMap(gpxFileInfo, map, showFileInfo);
                     });
 
-                    fetch(`api/getGpxFileList`)
+                    console.log('fillMap ' + fileDirectory)
+
+                    fetch(`api/getGpxFileList?directory=${fileDirectory}`)
                         .then(res => res.json())
                         .then(data => {
                                 const gpxFileList = data as GpxFileRefs
