@@ -3,10 +3,10 @@ import {NextApiRequest} from 'next';
 export function getFilePrefix(request: NextApiRequest) {
     const dir = request.query.directory
 
-    if (dir && typeof dir !== 'string' || dir === 'undefined' || dir === 'null') {
+    if (dir && typeof dir !== 'string') {
         throw new Error(`Bad parameter '${dir}'`)
     }
-    const dir2 = dir as string || process.env.DEFAULT_DIR
+    const dir2 = dir as string
 
     console.log('getFilePrefix', {dir, dir2})
 

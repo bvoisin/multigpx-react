@@ -33,7 +33,7 @@ class Page extends React.Component<PageProps, PageState> {
     readonly newGpxFilesToDraw2$ = this.droppedGpxFile$.pipe(
         switchMap(file => reduceGpx(file).then(gpxDoc => parseToGpxFileInfo(gpxDoc, file.name))),
         switchMap(fileInfo => {
-            return uploadGpx(fileInfo).then(() => fileInfo);
+            return uploadGpx(fileInfo, this.state.droppedMapsContext.fileDirectory).then(() => fileInfo);
         })
     )
     readonly otherGpxFilesToDraw$$ = new Subject<GpxFileInfo>()

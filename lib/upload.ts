@@ -1,19 +1,19 @@
 import {GpxFileInfo} from 'pages/gpxFileInfo';
 
-export async function uploadGpx(file: File | GpxFileInfo) {
+export async function uploadGpx(file: File | GpxFileInfo, directory:string) {
     if (file instanceof File) {
         const filename = encodeURIComponent(file.name);
-        return uploadGpxText(filename, file);
+        return uploadGpxText(filename, directory, file);
     } else if (file instanceof GpxFileInfo) {
         const filename = encodeURIComponent(file.fileName);
         const asText = new XMLSerializer().serializeToString(file.doc)
-        return uploadGpxText(filename, asText);
+        return uploadGpxText(filename, directory, asText);
     }
 }
 
-export async function uploadGpxText(fileName: string, fileContent: string | File) {
+export async function uploadGpxText(fileName: string, directory:string, fileContent: string | File) {
     const filename = encodeURIComponent(fileName);
-    const res = await fetch(`/api/getUploadUrl?file=${filename}`);
+    const res = await fetch(`/api/getUploadUrl?file=${filename}&directory=${directory}`);
     const {url, fields: requiredFields} = await res.json();
     const formData = new FormData();
 

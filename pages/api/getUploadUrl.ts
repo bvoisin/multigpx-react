@@ -13,10 +13,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     const filePrefix = getFilePrefix(req)
     const s3 = new aws.S3();
+    const filePath = filePrefix + fileName;
+    console.log(`created Upload URL for '${filePath}'`)
+
     const post = await s3.createPresignedPost({
         Bucket: process.env.BUCKET_NAME,
         Fields: {
-            key: filePrefix + fileName,
+            key: filePath,
         },
         Expires: 60, // seconds
         Conditions: [

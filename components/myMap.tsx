@@ -91,7 +91,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                 let author = gpxFile.athleteName;
                 return `<div>                    <b>${gpxFile.traceName}</b>` +
                     (author ? `<br/><b><i>${author}</i></b>` : '') +
-                    (author ? `<br/><a href=${link}>Link</a>` : '') +
+                    // (link ? `<br/><a href=${link}>Link</a>` : '') +
                     '</div>';
             });
         }).addTo(map);
