@@ -1,4 +1,4 @@
-import {MapContainer, MapContainerProps, TileLayer} from 'react-leaflet';
+import {MapContainer, MapContainerProps} from 'react-leaflet';
 import React from 'react';
 import {Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
@@ -6,6 +6,7 @@ import {createLeafletGpx} from 'lib/leafletgpx';
 import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
 import {GpxFileInfo} from 'pages/gpxFileInfo';
 import {DroppedMapsContext} from 'pages/droppedMapsContext';
+import MyLayerControl from 'components/myMapLayerControl';
 
 const colors = [
     '#7c7c7c',
@@ -141,15 +142,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     }
                 }
                 return <MapContainer {...mapOpts}>
-                    <TileLayer
-                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    {/*<Marker position={position}>*/}
-                    {/*    <Popup>*/}
-                    {/*        A pretty CSS3 popup. <br/> Easily customizable.*/}
-                    {/*    </Popup>*/}
-                    {/*</Marker>*/}
+                    <MyLayerControl/>
                 </MapContainer>;
             }}
         </DroppedMapsContext.Consumer>
