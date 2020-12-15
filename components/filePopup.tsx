@@ -56,6 +56,7 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
                                         value={props.values.link}
                                         onChange={props.handleChange}/>
                                     <button type="submit">Save</button>
+                                    {props.values.link && <a href={props.values.link}>Link</a>}
                                 </Form>
                             </DialogContent>
                         </Dialog>
