@@ -49,7 +49,7 @@ class Page extends React.Component<PageProps, PageState> {
                 showFileInfo: f => this.showFileInfo(f),
                 fileDirectory: props.fileDirectory
             },
-            position: [48.864716, 2.349014],
+            position: [48.864716, 2.4],
             zoom: 13,
         }
     }

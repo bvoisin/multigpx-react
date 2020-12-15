@@ -1,6 +1,6 @@
 import {MapContainer, MapContainerProps} from 'react-leaflet';
 import React from 'react';
-import {Layer, Map as LeafletMap} from 'leaflet';
+import {LatLngBounds, Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/leafletgpx';
 import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
@@ -54,7 +54,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
-
+    let currentBounds: LatLngBounds = null;
     const layersByGpxFileName = new Map<string, Layer>();
 
     function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
@@ -82,7 +82,13 @@ export default function MyMap(opts: MyMapContainerProps) {
         const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
-            //  mymap.fitBounds(e.target.getBounds());
+            if (currentBounds) {
+                currentBounds.extend(e.target.getBounds());
+                map.flyToBounds(currentBounds);
+            } else {
+                currentBounds = e.target.getBounds();
+                // map.fitBounds(currentBounds);
+            }
 
             gpx.on('click', (e) => {
                 showFile(gpxFile)
@@ -112,22 +118,16 @@ export default function MyMap(opts: MyMapContainerProps) {
     return (
         <DroppedMapsContext.Consumer>
             {({newGpxFilesToDraw$, showFileInfo, fileDirectory}) => {
-                console.log('myMap ' + fileDirectory)
-
                 function fillMap(map: LeafletMap) {
                     // console.log('fillMap', {map});
                     newGpxFilesToDraw$.subscribe(gpxFileInfo => {
                         addGpxToMap(gpxFileInfo, map, showFileInfo);
                     });
 
-                    console.log('fillMap ' + fileDirectory)
-
                     fetch(`api/getGpxFileList?directory=${fileDirectory}`)
                         .then(res => res.json())
-                        .then(data => {
-                                const gpxFileList = data as GpxFileRefs
-                                console.log('getList2', {gpxFileList})
-                                return addGpxsToMap(map, gpxFileList, showFileInfo)
+                        .then(gpxFileRefs => {
+                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
                             }
                         );
 
@@ -139,7 +139,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                             opts.whenCreated(map)
                         }
                         fillMap(map);
-                    }
+                    },
                 }
                 return <MapContainer {...mapOpts}>
                     <MyLayerControl/>
