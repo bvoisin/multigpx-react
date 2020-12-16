@@ -1,4 +1,4 @@
-import {GpxFileInfo} from 'pages/gpxFileInfo';
+import {GpxFileInfo} from 'lib/gpxFileInfo';
 
 export async function uploadGpx(file: File | GpxFileInfo, directory:string) {
     if (file instanceof File) {

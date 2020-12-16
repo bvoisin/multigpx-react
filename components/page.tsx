@@ -7,8 +7,8 @@ import {reduceGpx} from 'lib/reduceGpx';
 import {switchMap} from 'rxjs/operators';
 import {parseToGpxFileInfo} from 'lib/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/upload';
-import {GpxFileInfo} from 'pages/gpxFileInfo';
-import {DroppedMapsContext, DroppedMapsContextType} from 'pages/droppedMapsContext';
+import {GpxFileInfo} from 'lib/gpxFileInfo';
+import {DroppedMapsContext, DroppedMapsContextType} from 'lib/droppedMapsContext';
 
 const MyMap = dynamic(
     () => import('components/myMap'),

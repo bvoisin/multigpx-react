@@ -4,8 +4,8 @@ import {LatLngBounds, Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/leafletgpx';
 import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
-import {GpxFileInfo} from 'pages/gpxFileInfo';
-import {DroppedMapsContext} from 'pages/droppedMapsContext';
+import {GpxFileInfo} from 'lib/gpxFileInfo';
+import {DroppedMapsContext} from 'lib/droppedMapsContext';
 import MyLayerControl from 'components/myMapLayerControl';
 
 const colors = [
@@ -91,7 +91,10 @@ export default function MyMap(opts: MyMapContainerProps) {
             }
 
             gpx.on('click', (e) => {
-                showFile(gpxFile)
+                showFile(gpxFile);
+                
+                console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
+                // lgpx.setStyle({color: 'white'})
             })
             gpx.bindTooltip(layer => {
                 const link = gpxFile.link;

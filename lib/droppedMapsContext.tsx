@@ -1,5 +1,5 @@
 import {Observable} from 'rxjs';
-import {GpxFileInfo} from 'pages/gpxFileInfo';
+import {GpxFileInfo} from 'lib/gpxFileInfo';
 import React from 'react';
 
 export interface DroppedMapsContextType {

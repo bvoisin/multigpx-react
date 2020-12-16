@@ -2,8 +2,8 @@ import React from 'react';
 import {Dialog, DialogContent, DialogTitle, TextField} from '@material-ui/core';
 import {Form, Formik} from 'formik';
 import {updateGpxMetaInfo} from 'lib/parseToGpxFileInfo';
-import {GpxFileInfo} from 'pages/gpxFileInfo';
-import {DroppedMapsContext} from 'pages/droppedMapsContext';
+import {GpxFileInfo} from 'lib/gpxFileInfo';
+import {DroppedMapsContext} from 'lib/droppedMapsContext';
 
 export type FilePopupProps = { file: GpxFileInfo, closePopup?: () => void };
 
@@ -22,10 +22,10 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
         }
         console.log('FilePopup', f)
         return <DroppedMapsContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, newGpxFileToDraw}) =>
+            {({newGpxFilesToDraw$, showFileInfo, newGpxFileToDraw, fileDirectory}) =>
                 <Formik initialValues={{...f}}
                         onSubmit={values => {
-                            this.save(f, values).then(fileInfo => newGpxFileToDraw(fileInfo));
+                            this.save(f, values, fileDirectory).then(fileInfo => newGpxFileToDraw(fileInfo));
                         }}>
                     {props =>
                         <Dialog onClose={e => this.props.closePopup()} open={true} aria-labelledby="form-dialog-title">
@@ -66,7 +66,7 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
             }</DroppedMapsContext.Consumer>
     }
 
-    private async save(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
-        return updateGpxMetaInfo(f, values);
+    private async save(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string) {
+        return updateGpxMetaInfo(f, values, fileDirectory);
     }
 }
