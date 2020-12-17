@@ -1,8 +1,8 @@
 import * as aws from 'aws-sdk';
 import {S3} from 'aws-sdk';
 import {NextApiRequest, NextApiResponse} from 'next';
-import {loginToAws} from './loginToAws';
-import {getFilePrefix} from 'pages/api/getFilePrefix';
+import {loginToAws} from 'pages/api/loginToAws';
+import {getFilePrefix} from 'lib/api/getFilePrefix';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<S3.PresignedPost>) {
     loginToAws();
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     console.log(`created Upload URL for '${filePath}'`)
 
     const post = await s3.createPresignedPost({
-        Bucket: process.env.BUCKET_NAME,
+        Bucket: process.env.MY_AWS_BUCKET_NAME,
         Fields: {
             key: filePath,
         },

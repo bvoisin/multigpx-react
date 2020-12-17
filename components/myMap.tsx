@@ -2,10 +2,10 @@ import {MapContainer, MapContainerProps} from 'react-leaflet';
 import React from 'react';
 import {LatLngBounds, Layer, Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
-import {createLeafletGpx} from 'lib/leafletgpx';
-import {parseToGpxFileInfo2} from 'lib/parseToGpxFileInfo';
-import {GpxFileInfo} from 'lib/gpxFileInfo';
-import {DroppedMapsContext} from 'lib/droppedMapsContext';
+import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
+import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
+import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
+import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
 
 const colors = [
@@ -119,7 +119,7 @@ export default function MyMap(opts: MyMapContainerProps) {
     }
 
     return (
-        <DroppedMapsContext.Consumer>
+        <MainPageContext.Consumer>
             {({newGpxFilesToDraw$, showFileInfo, fileDirectory}) => {
                 function fillMap(map: LeafletMap) {
                     // console.log('fillMap', {map});
@@ -148,6 +148,6 @@ export default function MyMap(opts: MyMapContainerProps) {
                     <MyLayerControl/>
                 </MapContainer>;
             }}
-        </DroppedMapsContext.Consumer>
+        </MainPageContext.Consumer>
     );
 }

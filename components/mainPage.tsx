@@ -3,30 +3,34 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import {merge, Subject} from 'rxjs';
 import FilePopup from 'components/filePopup';
-import {reduceGpx} from 'lib/reduceGpx';
+import {reduceGpx} from 'lib/gpx/reduceGpx';
 import {switchMap} from 'rxjs/operators';
-import {parseToGpxFileInfo} from 'lib/parseToGpxFileInfo';
-import {uploadGpx} from 'lib/upload';
-import {GpxFileInfo} from 'lib/gpxFileInfo';
-import {DroppedMapsContext, DroppedMapsContextType} from 'lib/droppedMapsContext';
+import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
+import {uploadGpx} from 'lib/io/upload';
+import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
+import {DroppedMapsContextType, MainPageContext} from 'lib/mainPageContext';
 
-const MyMap = dynamic(
+const DynamicMyMap = dynamic(
     () => import('components/myMap'),
     {ssr: false}
 );
 
-interface PageProps {
+interface MainPageProps {
     fileDirectory: string;
 }
 
-interface PageState {
+interface MainPageState {
     droppedMapsContext: DroppedMapsContextType;
     position: [number, number];
     zoom: number;
     shownFile?: GpxFileInfo
 }
 
-class Page extends React.Component<PageProps, PageState> {
+/**
+ * The Main page when on a given directory
+ * Contains the Map and all the piping
+ */
+class MainPage extends React.Component<MainPageProps, MainPageState> {
 
     private readonly droppedGpxFile$ = new Subject<File>();
 
@@ -64,7 +68,6 @@ class Page extends React.Component<PageProps, PageState> {
         event.preventDefault();
 
         this.droppedGpxFile$.next(file);
-        // await uploadGpx(file);
     }
 
     dragOverHandler(event: React.DragEvent<HTMLDivElement>) {
@@ -76,14 +79,14 @@ class Page extends React.Component<PageProps, PageState> {
           <Head>
             <title>{this.state.droppedMapsContext.fileDirectory}</title>
           </Head>
-          < DroppedMapsContext.Provider value={this.state.droppedMapsContext}>
+          <MainPageContext.Provider value={this.state.droppedMapsContext}>
             <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)}>
-              <MyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
+              <DynamicMyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
             </div>
             <FilePopup file={this.state.shownFile} closePopup={() => this.showFileInfo(null)}/>
-          </DroppedMapsContext.Provider>
+          </MainPageContext.Provider>
         </div>;
     }
 }
 
-export default Page;
+export default MainPage;

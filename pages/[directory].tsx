@@ -1,5 +1,5 @@
 import {useRouter} from 'next/router'
-import Page from 'components/page';
+import MainPage from 'components/mainPage';
 
 // Current URL is '/'
 function Index() {
@@ -9,7 +9,7 @@ function Index() {
 
     console.log(`Index '${directory}'`);
     if (typeof directory === 'string') {
-        return <Page fileDirectory={directory as string}/>;
+        return <MainPage fileDirectory={directory as string}/>;
     } else {
         return null;
     }

@@ -1,6 +1,6 @@
 import {GpxFileRef} from 'pages/api/getGpxFileList';
-import {uploadGpxText} from 'lib/upload';
-import {GpxFileInfo} from 'lib/gpxFileInfo';
+import {uploadGpxText} from 'lib/io/upload';
+import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 
 async function getGpxXmlText(gpxFileUrl: GpxFileRef | File): Promise<{ doc: Document, fileName: string }> {
     if (gpxFileUrl instanceof File) {

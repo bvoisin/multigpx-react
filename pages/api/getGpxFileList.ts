@@ -1,7 +1,7 @@
 import * as aws from 'aws-sdk';
 import {NextApiRequest, NextApiResponse} from 'next';
-import {loginToAws} from './loginToAws';
-import {getFilePrefix} from 'pages/api/getFilePrefix';
+import {loginToAws} from 'pages/api/loginToAws';
+import {getFilePrefix} from 'lib/api/getFilePrefix';
 
 export interface GpxFileRef {
     fileName: string;
@@ -17,14 +17,14 @@ async function listFiles$(fileNamePrefix: string): Promise<GpxFileRefs> {
         return new Promise<GpxFileRef[]>((resolve) => {
             loginToAws();
             const s3 = new aws.S3();
-            s3.listObjects({Delimiter: '/', Prefix: fileNamePrefix, Bucket: process.env.BUCKET_NAME}, function (err, data) {
+            s3.listObjects({Delimiter: '/', Prefix: fileNamePrefix, Bucket: process.env.MY_AWS_BUCKET_NAME}, function (err, data) {
                 console.log('data ', {err, data})
                 const fileList$ = data.Contents
                     .map(f => f.Key)
                     .filter(key => key.endsWith('.gpx'))
                     .map(key => {
                             const fileName = key.substring(fileNamePrefix.length);
-                            return s3.getSignedUrlPromise('getObject', {Bucket: process.env.BUCKET_NAME, Key: key})
+                            return s3.getSignedUrlPromise('getObject', {Bucket: process.env.MY_AWS_BUCKET_NAME, Key: key})
                                 .then(downloadUrl => ({fileName, downloadUrl} as GpxFileRef));
                         }
                     )
