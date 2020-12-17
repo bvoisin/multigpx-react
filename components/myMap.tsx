@@ -7,6 +7,8 @@ import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
+import {Subject} from 'rxjs';
+import {debounceTime, scan} from 'rxjs/operators';
 
 const colors = [
     '#7c7c7c',
@@ -54,8 +56,10 @@ export interface MyMapContainerProps extends MapContainerProps {
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
-    let currentBounds: LatLngBounds = null;
     const layersByGpxFileName = new Map<string, Layer>();
+
+    const boundsRequest$ = new Subject<LatLngBounds>();
+
 
     function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
         const gpxOptions = {
@@ -82,22 +86,16 @@ export default function MyMap(opts: MyMapContainerProps) {
         const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
-            if (currentBounds) {
-                currentBounds.extend(e.target.getBounds());
-                map.flyToBounds(currentBounds);
-            } else {
-                currentBounds = e.target.getBounds();
-                // map.fitBounds(currentBounds);
-            }
+            boundsRequest$.next(e.target.getBounds())
 
-            gpx.on('click', (e) => {
+            gpx.on('click', () => {
                 showFile(gpxFile);
-                
+
                 console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
                 // lgpx.setStyle({color: 'white'})
             })
-            gpx.bindTooltip(layer => {
-                const link = gpxFile.link;
+            gpx.bindTooltip(() => {
+                // const link = gpxFile.link;
                 let author = gpxFile.athleteName;
                 return `<div>                    <b>${gpxFile.traceName}</b>` +
                     (author ? `<br/><b><i>${author}</i></b>` : '') +
@@ -109,7 +107,7 @@ export default function MyMap(opts: MyMapContainerProps) {
     }
 
     async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
-        const promises = gpxFileList.map((gpxFileRef, index) => {
+        const promises = gpxFileList.map((gpxFileRef) => {
             return parseToGpxFileInfo2(gpxFileRef).then(gpxFileInfo => {
                 addGpxToMap(gpxFileInfo, map, showFile);
                 return gpxFileInfo
@@ -142,6 +140,13 @@ export default function MyMap(opts: MyMapContainerProps) {
                             opts.whenCreated(map)
                         }
                         fillMap(map);
+
+                        boundsRequest$.pipe(
+                            scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
+                            debounceTime(300)
+                        ).subscribe(bounds => {
+                            map.flyToBounds(bounds, {animate: true, duration: 0.5})
+                        });
                     },
                 }
                 return <MapContainer {...mapOpts}>
