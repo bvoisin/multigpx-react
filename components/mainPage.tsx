@@ -17,6 +17,7 @@ const DynamicMyMap = dynamic(
 
 interface MainPageProps {
     fileDirectory: string;
+    xmasMode: boolean;
 }
 
 interface MainPageState {
@@ -51,7 +52,8 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 newGpxFilesToDraw$: this.newGpxFilesToDraw$,
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
                 showFileInfo: f => this.showFileInfo(f),
-                fileDirectory: props.fileDirectory
+                fileDirectory: props.fileDirectory,
+                xmasMode: props.xmasMode
             },
             position: [48.864716, 2.4],
             zoom: 13,

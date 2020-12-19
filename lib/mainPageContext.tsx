@@ -7,6 +7,7 @@ export interface DroppedMapsContextType {
     newGpxFileToDraw: (file: GpxFileInfo) => void;
     showFileInfo: (file: GpxFileInfo) => void
     fileDirectory: string;
+    xmasMode:boolean;
 }
 
 export const MainPageContext = React.createContext<DroppedMapsContextType>(undefined);

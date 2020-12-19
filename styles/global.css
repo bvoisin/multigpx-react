@@ -38,7 +38,7 @@ img {
     }
     70% {
         stroke-opacity: 1;
-        stroke-width: 3;
+        stroke-width: 5;
     }
     80% {
         stroke-opacity: 0;
@@ -46,7 +46,7 @@ img {
     }
     90% {
         stroke-opacity: 1;
-        stroke-width: 5;
+        stroke-width: 8;
     }
     100% {
         stroke-opacity: 0;

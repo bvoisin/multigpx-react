@@ -7,7 +7,7 @@ import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
-import {Subject} from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 import {debounceTime, scan} from 'rxjs/operators';
 
 // const colors = [
@@ -68,75 +68,82 @@ export default function MyMap(opts: MyMapContainerProps) {
     const layersByGpxFileName = new Map<string, Layer>();
 
     const boundsRequest$ = new Subject<LatLngBounds>();
+    let subscription: Subscription;
 
-
-    function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
-        const gpxOptions = {
-            async: true,
-            marker_options: {
-                startIconUrl: '', //'img/pin-icon-start.png',
-                endIconUrl: '', // 'img/pin-icon-end.png',
-                shadowUrl: '' // 'img/pin-shadow.png'
-            },
-            polyline_options: {
-                color: getIndexedColor(),
-                opacity: 0.75,
-                weight: 3,
-                fill: true,
-                fillOpacity: 0.1
-            }
-        };
-
-        let previousLayer = layersByGpxFileName.get(gpxFile.fileName);
-        if (previousLayer) {
-            map.removeLayer(previousLayer);
-            layersByGpxFileName.delete(gpxFile.fileName)
-        }
-        const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
-        lgpx['on']('loaded', function (e) {
-            const gpx = e.target;
-            boundsRequest$.next(e.target.getBounds())
-
-            const tracePath: Path = gpx.getLayers()[0] as Path;
-            const traceEl = tracePath.getElement();
-            traceEl.classList.add('flashingTrace')
-            const delayOffset = Math.floor(Math.random() * 8);
-            traceEl.classList.add('flashingTrace_delay_'+delayOffset)
-            const durationOffset = Math.floor(Math.random() * 8);
-            traceEl.classList.add('flashingTrace_duration_'+durationOffset)
-
-            gpx.on('click', () => {
-                showFile(gpxFile);
-
-                console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
-                // lgpx.setStyle({color: 'white'})
-            })
-            gpx.bindTooltip(() => {
-                // const link = gpxFile.link;
-                let author = gpxFile.athleteName;
-                return `<div>                    <b>${gpxFile.traceName}</b>` +
-                    (author ? `<br/><b><i>${author}</i></b>` : '') +
-                    // (link ? `<br/><a href=${link}>Link</a>` : '') +
-                    '</div>';
-            });
-        }).addTo(map);
-        layersByGpxFileName.set(gpxFile.fileName, lgpx as Layer);
-    }
-
-    async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
-        const promises = gpxFileList.map((gpxFileRef) => {
-            return parseToGpxFileInfo2(gpxFileRef).then(gpxFileInfo => {
-                addGpxToMap(gpxFileInfo, map, showFile);
-                return gpxFileInfo
-            });
-        });
-        return Promise.all(promises)
-    }
 
     return (
         <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, fileDirectory}) => {
+            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode}) => {
+                function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
+                    const gpxOptions = {
+                        async: true,
+                        marker_options: {
+                            startIconUrl: '', //'img/pin-icon-start.png',
+                            endIconUrl: '', // 'img/pin-icon-end.png',
+                            shadowUrl: '' // 'img/pin-shadow.png'
+                        },
+                        polyline_options: {
+                            color: getIndexedColor(),
+                            opacity: 0.75,
+                            weight: 3,
+                            fill: true,
+                            fillOpacity: 0.1
+                        }
+                    };
+
+                    let previousLayer = layersByGpxFileName.get(gpxFile.fileName);
+                    if (previousLayer) {
+                        map.removeLayer(previousLayer);
+                        layersByGpxFileName.delete(gpxFile.fileName)
+                    }
+                    const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
+                    lgpx['on']('loaded', function (e) {
+                        const gpx = e.target;
+                        boundsRequest$.next(e.target.getBounds())
+
+                        if (xmasMode) {
+                            const tracePath: Path = gpx.getLayers()[0] as Path;
+                            const traceEl = tracePath.getElement();
+                            traceEl.classList.add('flashingTrace')
+                            const delayOffset = Math.floor(Math.random() * 8);
+                            traceEl.classList.add('flashingTrace_delay_' + delayOffset)
+                            const durationOffset = Math.floor(Math.random() * 8);
+                            traceEl.classList.add('flashingTrace_duration_' + durationOffset)
+                        }
+                        gpx.on('click', () => {
+                            showFile(gpxFile);
+
+                            console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
+                            // lgpx.setStyle({color: 'white'})
+                        })
+                        gpx.bindTooltip(() => {
+                            // const link = gpxFile.link;
+                            let author = gpxFile.athleteName;
+                            return `<div>                    <b>${gpxFile.traceName}</b>` +
+                                (author ? `<br/><b><i>${author}</i></b>` : '') +
+                                // (link ? `<br/><a href=${link}>Link</a>` : '') +
+                                '</div>';
+                        });
+                    }).addTo(map);
+                    layersByGpxFileName.set(gpxFile.fileName, lgpx as Layer);
+                }
+
+                async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
+                    const promises = gpxFileList.map((gpxFileRef) => {
+                        return parseToGpxFileInfo2(gpxFileRef).then(gpxFileInfo => {
+                            addGpxToMap(gpxFileInfo, map, showFile);
+                            return gpxFileInfo
+                        });
+                    });
+                    return Promise.all(promises)
+                }
+
                 function fillMap(map: LeafletMap) {
+                    if (subscription) {
+                        subscription.unsubscribe();
+                        subscription = null;
+                    }
+
                     // console.log('fillMap', {map});
                     newGpxFilesToDraw$.subscribe(gpxFileInfo => {
                         addGpxToMap(gpxFileInfo, map, showFileInfo);
@@ -149,6 +156,12 @@ export default function MyMap(opts: MyMapContainerProps) {
                             }
                         );
 
+                    subscription = boundsRequest$.pipe(
+                        scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
+                        debounceTime(300)
+                    ).subscribe(bounds => {
+                        map.flyToBounds(bounds, {animate: true, duration: 0.5})
+                    });
                 }
 
                 const mapOpts: MapContainerProps = {
@@ -157,17 +170,10 @@ export default function MyMap(opts: MyMapContainerProps) {
                             opts.whenCreated(map)
                         }
                         fillMap(map);
-
-                        boundsRequest$.pipe(
-                            scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
-                            debounceTime(300)
-                        ).subscribe(bounds => {
-                            map.flyToBounds(bounds, {animate: true, duration: 0.5})
-                        });
                     },
                 }
                 return <MapContainer {...mapOpts}>
-                    <MyLayerControl/>
+                    <MyLayerControl xmasMode={xmasMode}/>
                 </MapContainer>;
             }}
         </MainPageContext.Consumer>
