@@ -4,6 +4,7 @@ import {Form, Formik} from 'formik';
 import {updateGpxMetaInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
+import {downloadXml} from 'lib/io/downloadInMemoryFile';
 
 export type FilePopupProps = { file: GpxFileInfo, closePopup?: () => void };
 
@@ -56,7 +57,10 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
                                         value={props.values.link}
                                         onChange={props.handleChange}/>
                                     <button type="submit">Save</button>
+                                    &nbsp;
                                     {props.values.link && <a href={props.values.link}>Link</a>}
+                                    &nbsp;
+                                    <a href="#" onClick={e => downloadXml(f.fileName, f.doc)}>GPX</a>
                                 </Form>
                             </DialogContent>
                         </Dialog>
