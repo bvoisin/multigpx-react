@@ -7,7 +7,7 @@ import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
-import {Subject, Subscription} from 'rxjs';
+import {interval, Subject, Subscription} from 'rxjs';
 import {debounceTime, scan} from 'rxjs/operators';
 
 // const colors = [
@@ -105,10 +105,10 @@ export default function MyMap(opts: MyMapContainerProps) {
                             const tracePath: Path = gpx.getLayers()[0] as Path;
                             const traceEl = tracePath.getElement();
                             traceEl.classList.add('flashingTrace')
-                            const delayOffset = Math.floor(Math.random() * 8);
-                            traceEl.classList.add('flashingTrace_delay_' + delayOffset)
-                            const durationOffset = Math.floor(Math.random() * 8);
-                            traceEl.classList.add('flashingTrace_duration_' + durationOffset)
+                            // const delayOffset = Math.floor(Math.random() * 8);
+                            // traceEl.classList.add('flashingTrace_delay_' + delayOffset)
+                            // const durationOffset = Math.floor(Math.random() * 8);
+                            // traceEl.classList.add('flashingTrace_duration_' + durationOffset)
                         }
                         gpx.on('click', () => {
                             showFile(gpxFile);
@@ -138,23 +138,11 @@ export default function MyMap(opts: MyMapContainerProps) {
                     return Promise.all(promises)
                 }
 
-                function fillMap(map: LeafletMap) {
+                function followBoundChanges(map: LeafletMap) {
                     if (subscription) {
                         subscription.unsubscribe();
                         subscription = null;
                     }
-
-                    // console.log('fillMap', {map});
-                    newGpxFilesToDraw$.subscribe(gpxFileInfo => {
-                        addGpxToMap(gpxFileInfo, map, showFileInfo);
-                    });
-
-                    fetch(`api/getGpxFileList?directory=${fileDirectory}`)
-                        .then(res => res.json())
-                        .then(gpxFileRefs => {
-                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
-                            }
-                        );
 
                     subscription = boundsRequest$.pipe(
                         scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
@@ -162,6 +150,55 @@ export default function MyMap(opts: MyMapContainerProps) {
                     ).subscribe(bounds => {
                         map.flyToBounds(bounds, {animate: true, duration: 0.5})
                     });
+                }
+
+                function followInNewGpxFiles(map: LeafletMap) {
+                    newGpxFilesToDraw$.subscribe(gpxFileInfo => {
+                        addGpxToMap(gpxFileInfo, map, showFileInfo);
+                    });
+                }
+
+                function fireFlashing() {
+                    let currentGpxs: string[] = [];
+                    interval(400).subscribe(i => {
+                        if (currentGpxs.length != layersByGpxFileName.size) {
+                            currentGpxs = Array.from(layersByGpxFileName.keys());
+                        }
+                        if (currentGpxs.length !== 0) {
+                            const selectedGpx = currentGpxs[Math.floor(Math.random() * currentGpxs.length)];
+                            const lGpx = layersByGpxFileName.get(selectedGpx) as Path;
+                            const layer = (lGpx as any).getLayers()[0];
+                            console.log('fireFlashing ' + selectedGpx, {lGpx, layer});
+
+                            if (layer) {
+                                const traceEl = layer.getElement();
+                                if (traceEl.classList.contains('flashingTraceA')) {
+                                    traceEl.classList.remove('flashingTraceA')
+                                    traceEl.classList.add('flashingTraceB')
+                                    console.log(selectedGpx + ' A')
+                                } else {
+                                    traceEl.classList.remove('flashingTraceB')
+                                    traceEl.classList.add('flashingTraceA')
+                                    console.log(selectedGpx + ' B')
+                                }
+                            }
+                        }
+                    })
+                }
+
+                function fillMap(map: LeafletMap) {
+                    // console.log('fillMap', {map});
+                    followInNewGpxFiles(map);
+
+                    fetch(`api/getGpxFileList?directory=${fileDirectory}`)
+                        .then(res => res.json())
+                        .then(gpxFileRefs => {
+                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
+                            }
+                        );
+                    followBoundChanges(map);
+
+                    fireFlashing();
                 }
 
                 const mapOpts: MapContainerProps = {
