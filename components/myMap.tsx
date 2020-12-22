@@ -86,8 +86,8 @@ export default function MyMap(opts: MyMapContainerProps) {
                             color: getIndexedColor(xmasMode),
                             opacity: 0.90,
                             weight: 3,
-                            fill: true,
-                            fillOpacity: 0.1
+                            fill: !xmasMode,
+                            fillOpacity: !xmasMode && 0.1
                         }
                     };
 
@@ -148,6 +148,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                         scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
                         debounceTime(300)
                     ).subscribe(bounds => {
+                        console.log('To bounds ', bounds)
                         map.flyToBounds(bounds, {animate: true, duration: 0.5})
                     });
                 }
@@ -160,27 +161,33 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                 function fireFlashing() {
                     let currentGpxs: string[] = [];
-                    interval(400).subscribe(i => {
+                    const intervalMs = 400
+                    const nbIntervalsWithoutReFires = Math.ceil(3000 / intervalMs); // 3000 = lenght of the longuest animation
+                    const flashedGpxs: string[] = new Array<string>(nbIntervalsWithoutReFires);
+                    interval(intervalMs).subscribe(i => {
                         if (currentGpxs.length != layersByGpxFileName.size) {
                             currentGpxs = Array.from(layersByGpxFileName.keys());
                         }
                         if (currentGpxs.length !== 0) {
                             const selectedGpx = currentGpxs[Math.floor(Math.random() * currentGpxs.length)];
-                            const lGpx = layersByGpxFileName.get(selectedGpx) as Path;
-                            const layer = (lGpx as any).getLayers()[0];
-                            console.log('fireFlashing ' + selectedGpx, {lGpx, layer});
+                            if (flashedGpxs.indexOf(selectedGpx) === -1) { // do not refire this trace if it has been fired in the last intervals
+                                flashedGpxs[i % nbIntervalsWithoutReFires] = selectedGpx;
+                                const lGpx = layersByGpxFileName.get(selectedGpx) as Path;
+                                const layer = (lGpx as any).getLayers()[0];
+                                console.log(`fireFlashing ${i} ${selectedGpx}`, {lGpx, layer});
 
-                            if (layer) {
-                                const traceEl = layer.getElement();
-                                if (traceEl.classList.contains('flashingTraceA')) {
-                                    traceEl.classList.remove('flashingTraceA')
-                                    traceEl.classList.add('flashingTraceB')
-                                    console.log(selectedGpx + ' A')
-                                } else {
-                                    traceEl.classList.remove('flashingTraceB')
-                                    traceEl.classList.add('flashingTraceA')
-                                    console.log(selectedGpx + ' B')
+                                if (layer) {
+                                    const traceEl = layer.getElement();
+                                    if (traceEl.classList.contains('flashingTraceA')) {
+                                        traceEl.classList.remove('flashingTraceA')
+                                        traceEl.classList.add('flashingTraceB')
+                                    } else {
+                                        traceEl.classList.remove('flashingTraceB')
+                                        traceEl.classList.add('flashingTraceA')
+                                    }
                                 }
+                            } else {
+                                flashedGpxs[i % nbIntervalsWithoutReFires] = null;
                             }
                         }
                     })
