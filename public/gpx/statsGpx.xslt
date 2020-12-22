@@ -13,15 +13,10 @@
     <xsl:template match="gpx:trkseg">
         <xsl:variable name="cnt" select="count(gpx:trkpt) div 1000"/>
         <xsl:copy>
-            <xsl:apply-templates select="gpx:trkpt[(position() mod $cnt)&lt;1]"/><!-- keep only 1000 points -->
+            <xsl:value-of select="count(gpx:trkpt[(position() mod $cnt)&lt;1])"/>
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="gpx:trkpt">
-        <xsl:copy>
-            <xsl:apply-templates select="gpx:ele|@lat|@lon"/><!-- only keep these elements, the rest (time, temperature, ...) are not useful for our project-->
-        </xsl:copy>
+    <xsl:template match="gpx:extensions"> <!-- ignore those -->
     </xsl:template>
-
-    <xsl:template match="gpx:extensions"/> <!-- ignore those values -->
 </xsl:stylesheet>

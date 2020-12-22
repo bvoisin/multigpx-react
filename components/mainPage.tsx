@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import {merge, Subject} from 'rxjs';
 import FilePopup from 'components/filePopup';
 import {reduceGpx} from 'lib/gpx/reduceGpx';
-import {switchMap} from 'rxjs/operators';
+import {concatMap} from 'rxjs/operators';
 import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/io/upload';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
@@ -36,10 +36,11 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
     private readonly droppedGpxFile$ = new Subject<File>();
 
     readonly newGpxFilesToDraw2$ = this.droppedGpxFile$.pipe(
-        switchMap(file => reduceGpx(file).then(gpxDoc => parseToGpxFileInfo(gpxDoc, file.name))),
-        switchMap(fileInfo => {
-            return uploadGpx(fileInfo, this.state.droppedMapsContext.fileDirectory).then(() => fileInfo);
-        })
+        concatMap(file =>
+            reduceGpx(file)
+                .then(gpxDoc => parseToGpxFileInfo(gpxDoc, file.name))
+                .then(fileInfo => uploadGpx(fileInfo, this.state.droppedMapsContext.fileDirectory).then(() => fileInfo))
+        )
     )
     readonly otherGpxFilesToDraw$$ = new Subject<GpxFileInfo>()
 
@@ -65,11 +66,11 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
     }
 
     async dropHandler(event: React.DragEvent<HTMLDivElement>) {
-        let file = event.dataTransfer.files[0];
-        console.log('File(s) dropped ', {event, f: file});
+        const files = Array.from(event.dataTransfer.files);
+        console.log('File(s) dropped ', {event, f: files});
         event.preventDefault();
 
-        this.droppedGpxFile$.next(file);
+        files.forEach(f => this.droppedGpxFile$.next(f));
     }
 
     dragOverHandler(event: React.DragEvent<HTMLDivElement>) {

@@ -7,9 +7,8 @@ export async function reduceGpx(gpxFile: File): Promise<Document> {
     xsltProcessor.importStylesheet(xslt)
 
 
-    const gpxText = await gpxFile.text()
+    const gpxText = await gpxFile.text();
     const gpx = new DOMParser().parseFromString(gpxText, 'text/xml');
 
-    const doc = xsltProcessor.transformToDocument(gpx)
-    return doc;
+    return xsltProcessor.transformToDocument(gpx);
 }
