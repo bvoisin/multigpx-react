@@ -71,7 +71,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     return (
         <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode, bounds$, boundsRequest}) => {
+            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode, flyToCommands$, flyToRequest}) => {
                 function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
                     const gpxOptions = {
                         async: true,
@@ -97,7 +97,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
                     lgpx['on']('loaded', function (e) {
                         const gpx = e.target;
-                        boundsRequest(e.target.getBounds(), true)
+                        flyToRequest(e.target.getBounds(), {}, true)
 
                         if (xmasMode) {
                             const tracePath: Path = gpx.getLayers()[0] as Path;
@@ -136,15 +136,15 @@ export default function MyMap(opts: MyMapContainerProps) {
                     return Promise.all(promises)
                 }
 
-                function followBoundChanges(map: LeafletMap) {
+                function subscribeToFlyToCommands(map: LeafletMap) {
                     if (subscription) {
                         subscription.unsubscribe();
                         subscription = null;
                     }
 
-                    subscription = bounds$.subscribe(bounds => {
-                        console.log('To bounds ', bounds)
-                        map.flyToBounds(bounds, {animate: true, duration: 0.5})
+                    subscription = flyToCommands$.subscribe(cmd => {
+                        console.log('Fly To ', cmd)
+                        map.flyToBounds(cmd.bounds, {animate: true, duration: 1, ...cmd.options})
                     });
                 }
 
@@ -156,7 +156,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                 function fireFlashing() {
                     let currentGpxs: string[] = [];
-                    const intervalMs = 400
+                    const intervalMs = 100
                     const nbIntervalsWithoutReFires = Math.ceil(3000 / intervalMs); // 3000 = lenght of the longuest animation
                     const flashedGpxs: string[] = new Array<string>(nbIntervalsWithoutReFires);
                     interval(intervalMs).subscribe(i => {
@@ -169,7 +169,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                                 flashedGpxs[i % nbIntervalsWithoutReFires] = selectedGpx;
                                 const lGpx = layersByGpxFileName.get(selectedGpx) as Path;
                                 const layer = (lGpx as any).getLayers()[0];
-                                console.log(`fireFlashing ${i} ${selectedGpx}`, {lGpx, layer});
+                                // console.log(`fireFlashing ${i} ${selectedGpx}`, {lGpx, layer});
 
                                 if (layer) {
                                     const traceEl = layer.getElement();
@@ -188,19 +188,33 @@ export default function MyMap(opts: MyMapContainerProps) {
                     })
                 }
 
-                function fillMap(map: LeafletMap) {
-                    // console.log('fillMap', {map});
-                    followInNewGpxFiles(map);
-
-                    fetch(`api/getGpxFileList?directory=${fileDirectory}`)
+                function loadGpxTraces(map: LeafletMap, dir: string) {
+                    fetch(`api/getGpxFileList?directory=${dir}`)
                         .then(res => res.json())
                         .then(gpxFileRefs => {
                                 return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
                             }
                         );
-                    followBoundChanges(map);
+                }
+
+                function showJoyeuxNoel(map: LeafletMap) {
+                    console.log('showJoyeuxNoel');
+                    flyToRequest(null, {duration: 10, easeLinearity: 0.01}, false);
+                    loadGpxTraces(map, '_joyeux-noel');
+                }
+
+                function fillMap(map: LeafletMap) {
+                    // console.log('fillMap', {map});
+                    followInNewGpxFiles(map);
+
+                    loadGpxTraces(map, fileDirectory);
+                    subscribeToFlyToCommands(map);
 
                     fireFlashing();
+
+                    if (xmasMode) {
+                        setTimeout(() => showJoyeuxNoel(map), 5000)
+                    }
                 }
 
                 const mapOpts: MapContainerProps = {

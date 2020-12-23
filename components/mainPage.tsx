@@ -8,8 +8,9 @@ import {concatMap, debounceTime, filter, scan, shareReplay} from 'rxjs/operators
 import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/io/upload';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
-import {DroppedMapsContextType, MainPageContext} from 'lib/mainPageContext';
-import {LatLngBounds} from 'leaflet';
+import {DroppedMapsContextType, FlyToCommand, MainPageContext} from 'lib/mainPageContext';
+import {LatLngBounds, PanOptions} from 'leaflet';
+import {doTrace} from 'lib/rxjs/rxjs-doTrace';
 
 const DynamicMyMap = dynamic(
     () => import('components/myMap'),
@@ -28,7 +29,7 @@ interface MainPageState {
     shownFile?: GpxFileInfo
 }
 
-type BoundsRequest = { bounds: LatLngBounds, extend: boolean };
+type BoundsRequest = { bounds: LatLngBounds, extend: boolean, options: PanOptions };
 
 /**
  * The Main page when on a given directory
@@ -52,14 +53,15 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
     readonly boundsRequest$ = new Subject<BoundsRequest>();
 
     readonly bounds$ = this.boundsRequest$.pipe(
-        scan<BoundsRequest, LatLngBounds>((globalBounds, request) => {
-            if (request.extend && globalBounds) {
-                return globalBounds.extend(request.bounds);
-            } else {
-                return request.bounds;
-            }
-        }),
-        filter(b => !!b), // ignore null values : if we receive a extends=false but no bounds to clear the scan
+        scan<BoundsRequest, FlyToCommand>((lastCmd, request) => {
+            const newBounds = request.extend && lastCmd.bounds ? lastCmd.bounds.extend(request.bounds) : request.bounds;
+            const newOptions = {...lastCmd.options, ...request.options}
+            const newCmd: FlyToCommand = {bounds: newBounds, options: newOptions};
+            console.log('mergedCmd', {request, newCmd});
+            return newCmd;
+        }, {}),
+        doTrace('bounds'),
+        filter(b => !!b.bounds), // ignore null bounds : we receive extends=false but no bounds to clear the scan
         debounceTime(300),
         shareReplay(1)
     );
@@ -72,9 +74,9 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
                 showFileInfo: f => this.showFileInfo(f),
                 fileDirectory: props.fileDirectory,
-                bounds$: this.bounds$,
-                boundsRequest: (bounds: LatLngBounds, extend: boolean) => {
-                    this.boundsRequest$.next({bounds: bounds, extend: extend})
+                flyToCommands$: this.bounds$,
+                flyToRequest: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => {
+                    this.boundsRequest$.next({bounds: bounds, extend: extend, options})
                 },
                 xmasMode: props.xmasMode
             },

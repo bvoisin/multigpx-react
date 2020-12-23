@@ -177,4 +177,3 @@ export class DoTraceMgr {
 }
 
 const dwDoTraceMgr = new DoTraceMgr();
-window['dwDoTraceMgr'] = dwDoTraceMgr;

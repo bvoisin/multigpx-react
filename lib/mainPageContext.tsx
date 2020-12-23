@@ -1,7 +1,7 @@
 import {Observable} from 'rxjs';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import React from 'react';
-import {LatLngBounds} from 'leaflet';
+import {LatLngBounds, PanOptions} from 'leaflet';
 
 export interface DroppedMapsContextType {
     newGpxFilesToDraw$: Observable<GpxFileInfo>;
@@ -9,10 +9,10 @@ export interface DroppedMapsContextType {
     showFileInfo: (file: GpxFileInfo) => void
     fileDirectory: string;
     xmasMode: boolean;
-    bounds$: Observable<LatLngBounds>;
+    flyToCommands$: Observable<FlyToCommand>;
 
-    boundsRequest(bounds: LatLngBounds, extend: boolean)
+    flyToRequest(bounds: LatLngBounds, options: PanOptions, extend: boolean)
 }
 
-export type BoundsRequest = { bounds: LatLngBounds, extends: boolean };
+export type FlyToCommand = { bounds?: LatLngBounds, options?: PanOptions };
 export const MainPageContext = React.createContext<DroppedMapsContextType>(undefined);
