@@ -4,11 +4,12 @@ import dynamic from 'next/dynamic';
 import {merge, Subject} from 'rxjs';
 import FilePopup from 'components/filePopup';
 import {reduceGpx} from 'lib/gpx/reduceGpx';
-import {concatMap} from 'rxjs/operators';
+import {concatMap, debounceTime, filter, scan, shareReplay} from 'rxjs/operators';
 import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/io/upload';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {DroppedMapsContextType, MainPageContext} from 'lib/mainPageContext';
+import {LatLngBounds} from 'leaflet';
 
 const DynamicMyMap = dynamic(
     () => import('components/myMap'),
@@ -26,6 +27,8 @@ interface MainPageState {
     zoom: number;
     shownFile?: GpxFileInfo
 }
+
+type BoundsRequest = { bounds: LatLngBounds, extend: boolean };
 
 /**
  * The Main page when on a given directory
@@ -46,6 +49,21 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
 
     readonly newGpxFilesToDraw$ = merge(this.newGpxFilesToDraw2$, this.otherGpxFilesToDraw$$)
 
+    readonly boundsRequest$ = new Subject<BoundsRequest>();
+
+    readonly bounds$ = this.boundsRequest$.pipe(
+        scan<BoundsRequest, LatLngBounds>((globalBounds, request) => {
+            if (request.extend && globalBounds) {
+                return globalBounds.extend(request.bounds);
+            } else {
+                return request.bounds;
+            }
+        }),
+        filter(b => !!b), // ignore null values : if we receive a extends=false but no bounds to clear the scan
+        debounceTime(300),
+        shareReplay(1)
+    );
+
     constructor(props, context) {
         super(props, context);
         this.state = {
@@ -54,6 +72,10 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
                 showFileInfo: f => this.showFileInfo(f),
                 fileDirectory: props.fileDirectory,
+                bounds$: this.bounds$,
+                boundsRequest: (bounds: LatLngBounds, extend: boolean) => {
+                    this.boundsRequest$.next({bounds: bounds, extend: extend})
+                },
                 xmasMode: props.xmasMode
             },
             position: [48.864716, 2.4],

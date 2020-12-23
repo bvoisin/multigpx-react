@@ -1,14 +1,13 @@
 import {MapContainer, MapContainerProps} from 'react-leaflet';
 import React from 'react';
-import {LatLngBounds, Layer, Map as LeafletMap, Path} from 'leaflet';
+import {Layer, Map as LeafletMap, Path} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
 import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
-import {interval, Subject, Subscription} from 'rxjs';
-import {debounceTime, scan} from 'rxjs/operators';
+import {interval, Subscription} from 'rxjs';
 
 const stdColors = [
     '#d34f00',
@@ -67,13 +66,12 @@ export interface MyMapContainerProps extends MapContainerProps {
 export default function MyMap(opts: MyMapContainerProps) {
     const layersByGpxFileName = new Map<string, Layer>();
 
-    const boundsRequest$ = new Subject<LatLngBounds>();
     let subscription: Subscription;
 
 
     return (
         <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode}) => {
+            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode, bounds$, boundsRequest}) => {
                 function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
                     const gpxOptions = {
                         async: true,
@@ -99,7 +97,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
                     lgpx['on']('loaded', function (e) {
                         const gpx = e.target;
-                        boundsRequest$.next(e.target.getBounds())
+                        boundsRequest(e.target.getBounds(), true)
 
                         if (xmasMode) {
                             const tracePath: Path = gpx.getLayers()[0] as Path;
@@ -144,10 +142,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                         subscription = null;
                     }
 
-                    subscription = boundsRequest$.pipe(
-                        scan<LatLngBounds>((globalBounds, newBounds) => globalBounds && globalBounds.extend(newBounds) || newBounds),
-                        debounceTime(300)
-                    ).subscribe(bounds => {
+                    subscription = bounds$.subscribe(bounds => {
                         console.log('To bounds ', bounds)
                         map.flyToBounds(bounds, {animate: true, duration: 0.5})
                     });
