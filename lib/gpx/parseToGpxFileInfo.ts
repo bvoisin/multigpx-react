@@ -15,7 +15,8 @@ async function getGpxXmlText(gpxFileUrl: GpxFileRef | File): Promise<{ doc: Docu
 const athleteNameXPath = '/g:gpx/g:metadata/g:author/g:name';
 const traceNameXPath = '/g:gpx/g:trk/g:name';
 const linkXPath = '/g:gpx/g:metadata/g:link/@href';
-const GPX_NS_RESOLVER = () => 'http://www.topografix.com/GPX/1/1';
+const GPX_NS = 'http://www.topografix.com/GPX/1/1';
+const GPX_NS_RESOLVER = () => GPX_NS;
 
 
 export function parseToGpxFileInfo(doc: Document, fileName: string) {
@@ -41,11 +42,36 @@ export async function parseToGpxFileInfo2(gpxFileUrl: GpxFileRef | File): Promis
     return parseToGpxFileInfo(doc, f.fileName);
 }
 
-export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory:string): Promise<GpxFileInfo> {
+export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string): Promise<GpxFileInfo> {
     function setValue(xPath: string, v: string) {
         if (v !== undefined) {
-            const node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-            node.textContent = v;
+            const node: Node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (node != null) {
+                node.textContent = v;
+            } else {
+                const paths = xPath.replace(/^\/g:gpx\//, '').split('/')
+                let currentNode: Element = f.doc.documentElement;
+                for (const p of paths) {
+                    if (p.startsWith('g:')) {
+                        const elName = p.substring(2);
+                        let el = currentNode.getElementsByTagName(elName).item(0);
+                        if (!el) {
+                            el = f.doc.createElementNS(GPX_NS, elName)
+                            currentNode.appendChild(el);
+                        }
+                        currentNode = el;
+                    } else if (p.startsWith('@')) {
+                        const attName = p.substring(1);
+                        if (v) {
+                            currentNode.setAttribute(attName, v);
+                        } else {
+                            currentNode.removeAttribute(attName)
+                        }
+                        return;
+                    }
+                }
+                currentNode.textContent = v;
+            }
         }
     }
 
@@ -56,5 +82,5 @@ export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>, 
     const asText = new XMLSerializer().serializeToString(f.doc)
 
     console.log('New doc ', {newFile, asText});
-    return uploadGpxText(f.fileName, asText, fileDirectory).then(() => newFile);
+    return uploadGpxText(f.fileName, fileDirectory, asText).then(() => newFile);
 }
