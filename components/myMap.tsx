@@ -5,7 +5,7 @@ import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
 import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
-import {MainPageContext} from 'lib/mainPageContext';
+import {DisplayMode, MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
 import {interval, Subscription} from 'rxjs';
 
@@ -53,8 +53,8 @@ const xmasColors = [
 
 let colorIndex = 0;
 
-function getIndexedColor(xmasMode: boolean) {
-    const colors = xmasMode ? xmasColors : stdColors;
+function getIndexedColor(displayMode: DisplayMode) {
+    const colors = displayMode == 'def' ? stdColors : xmasColors;
     return colors[((colorIndex++) * 37) % colors.length];
 }
 
@@ -71,7 +71,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     return (
         <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, xmasMode, flyToCommands$, flyToRequest}) => {
+            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, displayMode, flyToCommands$, flyToRequest}) => {
                 function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
                     const gpxOptions = {
                         async: true,
@@ -81,11 +81,11 @@ export default function MyMap(opts: MyMapContainerProps) {
                             shadowUrl: '' // 'img/pin-shadow.png'
                         },
                         polyline_options: {
-                            color: getIndexedColor(xmasMode),
+                            color: getIndexedColor(displayMode),
                             opacity: 0.90,
                             weight: 3,
-                            fill: !xmasMode,
-                            fillOpacity: !xmasMode && 0.1
+                            fill: displayMode == 'def',
+                            fillOpacity: (displayMode == 'def') && 0.1
                         }
                     };
 
@@ -99,7 +99,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                         const gpx = e.target;
                         flyToRequest(e.target.getBounds(), {}, true)
 
-                        if (xmasMode) {
+                        if (displayMode == 'xmas' || displayMode == 'xmas2') {
                             const tracePath: Path = gpx.getLayers()[0] as Path;
                             const traceEl = tracePath.getElement();
                             traceEl.classList.add('flashingTrace')
@@ -144,7 +144,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                     subscription = flyToCommands$.subscribe(cmd => {
                         console.log('Fly To ', cmd)
-                        map.flyToBounds(cmd.bounds, {animate: true, duration: 1, ...cmd.options})
+                        map.flyToBounds(cmd.bounds, {animate: true, duration: 1, noMoveStart: true, ...cmd.options})
                     });
                 }
 
@@ -199,7 +199,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                 function showJoyeuxNoel(map: LeafletMap) {
                     console.log('showJoyeuxNoel');
-                    flyToRequest(null, {duration: 10, easeLinearity: 0.01}, false);
+                    flyToRequest(null, {duration: 10, easeLinearity: 0.1}, false);
                     loadGpxTraces(map, '_joyeux-noel');
                 }
 
@@ -212,7 +212,11 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                     fireFlashing();
 
-                    if (xmasMode) {
+                    map.on('moveend', event => {
+                        console.log('moveend ', {event, bounds: map.getBounds()});
+                    })
+
+                    if (displayMode == 'xmas2') {
                         setTimeout(() => showJoyeuxNoel(map), 5000)
                     }
                 }
@@ -226,7 +230,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     },
                 }
                 return <MapContainer {...mapOpts}>
-                    <MyLayerControl xmasMode={xmasMode}/>
+                    <MyLayerControl displayMode={displayMode}/>
                 </MapContainer>;
             }}
         </MainPageContext.Consumer>

@@ -8,7 +8,7 @@ import {concatMap, debounceTime, filter, scan, shareReplay} from 'rxjs/operators
 import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {uploadGpx} from 'lib/io/upload';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
-import {DroppedMapsContextType, FlyToCommand, MainPageContext} from 'lib/mainPageContext';
+import {DisplayMode, DroppedMapsContextType, FlyToCommand, MainPageContext} from 'lib/mainPageContext';
 import {LatLngBounds, PanOptions} from 'leaflet';
 import {doTrace} from 'lib/rxjs/rxjs-doTrace';
 
@@ -19,7 +19,7 @@ const DynamicMyMap = dynamic(
 
 interface MainPageProps {
     fileDirectory: string;
-    xmasMode: boolean;
+    displayMode: DisplayMode;
 }
 
 interface MainPageState {
@@ -78,7 +78,7 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 flyToRequest: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => {
                     this.boundsRequest$.next({bounds: bounds, extend: extend, options})
                 },
-                xmasMode: props.xmasMode
+                displayMode: props.displayMode
             },
             position: [48.864716, 2.4],
             zoom: 13,

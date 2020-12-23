@@ -1,10 +1,11 @@
 import {LayersControl, TileLayer} from 'react-leaflet';
 import React from 'react';
 import {tileServers} from 'lib/tileServers';
+import {DisplayMode} from 'lib/mainPageContext';
 
-export default function MyLayerControl(props: { xmasMode: boolean }) {
-    const {xmasMode} = props;
-    const startupTs = xmasMode ? 'dark' : 'def';
+export default function MyLayerControl(props: { displayMode: DisplayMode }) {
+    const {displayMode} = props;
+    const startupTs = displayMode == 'def' ? 'def' : 'dark';
 
     return <LayersControl position="topright">
         {tileServers.map(ts => {
