@@ -19,9 +19,20 @@
 
     <xsl:template match="gpx:trkpt">
         <xsl:copy>
-            <xsl:apply-templates select="gpx:ele|@lat|@lon"/><!-- only keep these elements, the rest (time, temperature, ...) are not useful for our project-->
+            <xsl:attribute name="lat">
+                <xsl:value-of select="round(@lat*1000000) div 1000000"/><!-- réduction au mètre de la précision des traces (enlever les erreurs d'arrondi ex: 2.4157900000000003) : env. 1.11m -->
+            </xsl:attribute>
+            <xsl:attribute name="lon">
+                <xsl:value-of select="round(@lon*1000000) div 1000000"/>
+            </xsl:attribute>
+            <xsl:apply-templates select="gpx:ele"/><!-- only keep these elements, the rest (time, temperature, ...) are not useful for our project-->
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template match="@lat">
+        <xsl:attribute name="lat">
+            <xsl:value-of select="round(text()*10000) div 10000"/>
+        </xsl:attribute>
+    </xsl:template>
     <xsl:template match="gpx:extensions"/> <!-- ignore those values -->
 </xsl:stylesheet>
