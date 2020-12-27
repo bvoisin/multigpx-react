@@ -18,5 +18,6 @@ export default function MyLayerControl(props: { displayMode: DisplayMode }) {
             }
         )
         }
+
     </LayersControl>;
 }
