@@ -23,13 +23,13 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
         }
         console.log('FilePopup', f)
         return <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, newGpxFileToDraw, fileDirectory}) =>
+            {({ newGpxFileToDraw, fileDirectory}) =>
                 <Formik initialValues={{...f}}
                         onSubmit={values => {
-                            this.save(f, values, fileDirectory).then(fileInfo => newGpxFileToDraw(fileInfo));
+                            FilePopup.save(f, values, fileDirectory).then(fileInfo => newGpxFileToDraw(fileInfo));
                         }}>
                     {props =>
-                        <Dialog onClose={e => this.props.closePopup()} open={true} aria-labelledby="form-dialog-title">
+                        <Dialog onClose={() => this.props.closePopup()} open={true} aria-labelledby="form-dialog-title">
                             <DialogTitle id="simple-dialog-title">{f.traceName}</DialogTitle>
                             <DialogContent>
                                 <Form onSubmit={props.handleSubmit}>
@@ -60,7 +60,7 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
                                     &nbsp;
                                     {props.values.link && <a href={props.values.link}>Link</a>}
                                     &nbsp;
-                                    <a href="#" onClick={e => downloadXml(f.fileName, f.doc)}>GPX</a>
+                                    <a href="#" onClick={() => downloadXml(f.fileName, f.doc)}>GPX</a>
                                 </Form>
                             </DialogContent>
                         </Dialog>
@@ -70,7 +70,7 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
             }</MainPageContext.Consumer>
     }
 
-    private async save(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string) {
+    private static async save(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string) {
         return updateGpxMetaInfo(f, values, fileDirectory);
     }
 }

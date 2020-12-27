@@ -10,7 +10,6 @@ import {uploadGpx} from 'lib/io/upload';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {DisplayMode, DroppedMapsContextType, FlyToCommand, MainPageContext} from 'lib/mainPageContext';
 import {LatLngBounds, PanOptions} from 'leaflet';
-import {doTrace} from 'lib/rxjs/rxjs-doTrace';
 
 const DynamicMyMap = dynamic(
     () => import('components/myMap'),
@@ -57,10 +56,10 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
             const newBounds = request.extend && lastCmd.bounds ? lastCmd.bounds.extend(request.bounds) : request.bounds;
             const newOptions = {...lastCmd.options, ...request.options}
             const newCmd: FlyToCommand = {bounds: newBounds, options: newOptions};
-            console.log('mergedCmd', {request, newCmd});
+            // console.log('mergedCmd', {request, newCmd});
             return newCmd;
         }, {}),
-        doTrace('bounds'),
+        // doTrace('bounds'),
         filter(b => !!b.bounds), // ignore null bounds : we receive extends=false but no bounds to clear the scan
         debounceTime(300),
         shareReplay(1)
@@ -74,7 +73,7 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
                 showFileInfo: f => this.showFileInfo(f),
                 fileDirectory: props.fileDirectory,
-                flyToCommands$: this.bounds$,
+                flyToCommand$: this.bounds$,
                 flyToRequest: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => {
                     this.boundsRequest$.next({bounds: bounds, extend: extend, options})
                 },

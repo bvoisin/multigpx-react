@@ -1,238 +1,63 @@
 import {MapContainer, MapContainerProps} from 'react-leaflet';
-import React from 'react';
-import {Layer, Map as LeafletMap, Path} from 'leaflet';
-import {GpxFileRefs} from 'pages/api/getGpxFileList';
-import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
-import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
-import {DisplayMode, MainPageContext} from 'lib/mainPageContext';
+import React, {useContext, useState} from 'react';
+import {Map as LeafletMap} from 'leaflet';
+import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
-import {interval, Subscription} from 'rxjs';
-
-const stdColors = [
-    '#d34f00',
-    '#b96500',
-    '#a57000',
-    '#937800',
-    '#817f00',
-    '#6c8500',
-    '#4f8a00',
-    '#009004',
-    '#008f42',
-    '#008e5d',
-    '#008d6f',
-    '#008c7d',
-    '#008b89',
-    '#008a94',
-    '#00899f',
-    '#0088aa',
-    '#0086b7',
-    '#0084c7',
-    '#0081dc',
-    '#007afe',
-    '#606fff',
-    '#8f5dff',
-    '#bc3afc',
-    '#db00dd',
-    '#e400b5',
-    '#e90096',
-    '#ed007a',
-    '#f0005e',
-    '#f2003f',
-    '#f30011'
-]
-
-const xmasColors = [
-    '#FFFF00',
-    '#00FFFF',
-    '#FF00FF',
-    '#00FF00',
-    '#0000FF',
-    '#FF0000'
-]
-
-let colorIndex = 0;
-
-function getIndexedColor(displayMode: DisplayMode) {
-    const colors = displayMode == 'def' ? stdColors : xmasColors;
-    return colors[((colorIndex++) * 37) % colors.length];
-}
+import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
+import GpxTrace from 'components/GpxTrace';
+import FlyToSupport from 'components/FlyToSupport';
+import GpxTraceLoader from 'components/GpxTraceLoader';
+import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
 
 export interface MyMapContainerProps extends MapContainerProps {
 
 }
 
+export interface MyMapContainerState {
+    loadedGpxFiles: GpxFileInfo[]
+}
+
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
-    const layersByGpxFileName = new Map<string, Layer>();
 
-    let subscription: Subscription;
+    const [{loadedGpxFiles}, setState] = useState<MyMapContainerState>({loadedGpxFiles: []});
+    const {fileDirectory, displayMode, flyToCommand$, newGpxFilesToDraw$} = useContext(MainPageContext)
 
+    function fillMap(map: LeafletMap) {
+        // console.log('fillMap', {map});
+        newGpxFilesToDraw$.subscribe(gpxFileInfo => {
+            addTraceToMap(gpxFileInfo);
+        });
+        map.on('moveend', event => {
+            console.log('moveend ', {event, bounds: map.getBounds()});
+        })
+    }
 
-    return (
-        <MainPageContext.Consumer>
-            {({newGpxFilesToDraw$, showFileInfo, fileDirectory, displayMode, flyToCommands$, flyToRequest}) => {
-                function addGpxToMap(gpxFile: GpxFileInfo, map: LeafletMap, showFile: (file: GpxFileInfo) => void) {
-                    const gpxOptions = {
-                        async: true,
-                        marker_options: {
-                            startIconUrl: '', //'img/pin-icon-start.png',
-                            endIconUrl: '', // 'img/pin-icon-end.png',
-                            shadowUrl: '' // 'img/pin-shadow.png'
-                        },
-                        polyline_options: {
-                            color: getIndexedColor(displayMode),
-                            opacity: 0.90,
-                            weight: 3,
-                            fill: displayMode == 'def',
-                            fillOpacity: (displayMode == 'def') && 0.1
-                        }
-                    };
+    function addTraceToMap(f: GpxFileInfo) {
+        setState(({loadedGpxFiles}) => ({loadedGpxFiles: [...loadedGpxFiles, f]}))
+    }
 
-                    let previousLayer = layersByGpxFileName.get(gpxFile.fileName);
-                    if (previousLayer) {
-                        map.removeLayer(previousLayer);
-                        layersByGpxFileName.delete(gpxFile.fileName)
-                    }
-                    const lgpx = createLeafletGpx(gpxFile.doc, gpxOptions)
-                    lgpx['on']('loaded', function (e) {
-                        const gpx = e.target;
-                        flyToRequest(e.target.getBounds(), {}, true)
+    function removeTracesFromMap(files: (GpxFileInfo | string)[]) {
+        const fileNames = new Set(files.map(f => typeof f === 'string' ? f : f.fileName));
+        setState(({loadedGpxFiles}) => ({loadedGpxFiles: [...loadedGpxFiles.filter(f => !fileNames.has(f.fileName))]}))
+    }
 
-                        if (displayMode == 'xmas' || displayMode == 'xmas2') {
-                            const tracePath: Path = gpx.getLayers()[0] as Path;
-                            const traceEl = tracePath.getElement();
-                            traceEl.classList.add('flashingTrace')
-                            // const delayOffset = Math.floor(Math.random() * 8);
-                            // traceEl.classList.add('flashingTrace_delay_' + delayOffset)
-                            // const durationOffset = Math.floor(Math.random() * 8);
-                            // traceEl.classList.add('flashingTrace_duration_' + durationOffset)
-                        }
-                        gpx.on('click', () => {
-                            showFile(gpxFile);
-
-                            console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
-                            // lgpx.setStyle({color: 'white'})
-                        })
-                        gpx.bindTooltip(() => {
-                            // const link = gpxFile.link;
-                            let author = gpxFile.athleteName;
-                            return `<div>                    <b>${gpxFile.traceName}</b>` +
-                                (author ? `<br/><b><i>${author}</i></b>` : '') +
-                                // (link ? `<br/><a href=${link}>Link</a>` : '') +
-                                '</div>';
-                        });
-                    }).addTo(map);
-                    layersByGpxFileName.set(gpxFile.fileName, lgpx as Layer);
-                }
-
-                async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
-                    const promises = gpxFileList.map((gpxFileRef) => {
-                        return parseToGpxFileInfo2(gpxFileRef).then(gpxFileInfo => {
-                            addGpxToMap(gpxFileInfo, map, showFile);
-                            return gpxFileInfo
-                        });
-                    });
-                    return Promise.all(promises)
-                }
-
-                function subscribeToFlyToCommands(map: LeafletMap) {
-                    if (subscription) {
-                        subscription.unsubscribe();
-                        subscription = null;
-                    }
-
-                    subscription = flyToCommands$.subscribe(cmd => {
-                        console.log('Fly To ', cmd)
-                        map.flyToBounds(cmd.bounds, {animate: true, duration: 1, noMoveStart: true, ...cmd.options})
-                    });
-                }
-
-                function followInNewGpxFiles(map: LeafletMap) {
-                    newGpxFilesToDraw$.subscribe(gpxFileInfo => {
-                        addGpxToMap(gpxFileInfo, map, showFileInfo);
-                    });
-                }
-
-                function fireFlashing() {
-                    let currentGpxs: string[] = [];
-                    const intervalMs = 100
-                    const nbIntervalsWithoutReFires = Math.ceil(3000 / intervalMs); // 3000 = lenght of the longuest animation
-                    const flashedGpxs: string[] = new Array<string>(nbIntervalsWithoutReFires);
-                    interval(intervalMs).subscribe(i => {
-                        if (currentGpxs.length != layersByGpxFileName.size) {
-                            currentGpxs = Array.from(layersByGpxFileName.keys());
-                        }
-                        if (currentGpxs.length !== 0) {
-                            const selectedGpx = currentGpxs[Math.floor(Math.random() * currentGpxs.length)];
-                            if (flashedGpxs.indexOf(selectedGpx) === -1) { // do not refire this trace if it has been fired in the last intervals
-                                flashedGpxs[i % nbIntervalsWithoutReFires] = selectedGpx;
-                                const lGpx = layersByGpxFileName.get(selectedGpx) as Path;
-                                const layer = (lGpx as any).getLayers()[0];
-                                // console.log(`fireFlashing ${i} ${selectedGpx}`, {lGpx, layer});
-
-                                if (layer) {
-                                    const traceEl = layer.getElement();
-                                    if (traceEl.classList.contains('flashingTraceA')) {
-                                        traceEl.classList.remove('flashingTraceA')
-                                        traceEl.classList.add('flashingTraceB')
-                                    } else {
-                                        traceEl.classList.remove('flashingTraceB')
-                                        traceEl.classList.add('flashingTraceA')
-                                    }
-                                }
-                            } else {
-                                flashedGpxs[i % nbIntervalsWithoutReFires] = null;
-                            }
-                        }
-                    })
-                }
-
-                function loadGpxTraces(map: LeafletMap, dir: string) {
-                    fetch(`api/getGpxFileList?directory=${dir}`)
-                        .then(res => res.json())
-                        .then(gpxFileRefs => {
-                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
-                            }
-                        );
-                }
-
-                function showJoyeuxNoel(map: LeafletMap) {
-                    console.log('showJoyeuxNoel');
-                    flyToRequest(null, {duration: 10, easeLinearity: 0.1}, false);
-                    loadGpxTraces(map, '_joyeux-noel');
-                }
-
-                function fillMap(map: LeafletMap) {
-                    // console.log('fillMap', {map});
-                    followInNewGpxFiles(map);
-
-                    loadGpxTraces(map, fileDirectory);
-                    subscribeToFlyToCommands(map);
-
-                    fireFlashing();
-
-                    map.on('moveend', event => {
-                        console.log('moveend ', {event, bounds: map.getBounds()});
-                    })
-
-                    if (displayMode == 'xmas2') {
-                        setTimeout(() => showJoyeuxNoel(map), 5000)
-                    }
-                }
-
-                const mapOpts: MapContainerProps = {
-                    ...opts, whenCreated: map => {
-                        if (opts.whenCreated) {
-                            opts.whenCreated(map)
-                        }
-                        fillMap(map);
-                    },
-                }
-                return <MapContainer {...mapOpts}>
-                    <MyLayerControl displayMode={displayMode}/>
-                </MapContainer>;
-            }}
-        </MainPageContext.Consumer>
-    );
+    const mapOpts: MapContainerProps = {
+        ...opts, whenCreated: map => {
+            if (opts.whenCreated) {
+                opts.whenCreated(map)
+            }
+            fillMap(map);
+        },
+    }
+    console.log('State ', loadedGpxFiles);
+    return <MapContainer {...mapOpts}>
+        <MyLayerControl displayMode={displayMode}/>
+        {loadedGpxFiles.map(file => {
+            return <GpxTrace gpxFileInfo={file} key={file.fileName} flashPeriodFactor={Math.sqrt(loadedGpxFiles.length)}/>;
+        })}
+        <GpxTraceLoader directory={fileDirectory} addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
+        <FlyToSupport flyToCommand$={flyToCommand$}/>
+        <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
+    </MapContainer>;
 }
