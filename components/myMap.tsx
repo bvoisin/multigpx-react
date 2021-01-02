@@ -24,14 +24,13 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     return (
         <MainPageContext.Consumer>
-            {({showFileInfo, fileDirectory, displayMode, flyToCommand$, flyToRequest}) => {
+            {({fileDirectory, displayMode, flyToCommand$, flyToRequest}) => {
 
-                async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
+                async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs) {
                     const promises = gpxFileList.map((gpxFileRef) => {
                         return parseToGpxFileInfo2(gpxFileRef);
                     });
                     return Promise.all(promises).then(lst => setState(s => {
-                        console.log('parsed ', {lst})
                         return ({fileList: [...s.fileList, ...lst]});
                     }))
                 }
@@ -40,7 +39,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                     fetch(`api/getGpxFileList?directory=${dir}`)
                         .then(res => res.json())
                         .then(gpxFileRefs => {
-                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs, showFileInfo)
+                                return addGpxsToMap(map, gpxFileRefs as GpxFileRefs)
                             }
                         );
                 }
@@ -80,7 +79,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                 return <MapContainer {...mapOpts}>
                     <MyLayerControl displayMode={displayMode}/>
                     {fileList.map(file => {
-                        return <GpxTrace displayMode={displayMode} gpxFileInfo={file} flyToRequestCb={flyToRequest} key={file.fileName}/>;
+                        return <GpxTrace gpxFileInfo={file} key={file.fileName}/>;
                     })}
                     <FlyToSupport flyToCommand$={flyToCommand$}/>
                 </MapContainer>;
