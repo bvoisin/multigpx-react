@@ -56,7 +56,7 @@ export default function MyMap(opts: MyMapContainerProps) {
 
                     loadGpxTraces(map, fileDirectory);
 
-                    // TODO fireFlashing();
+                    //TODO fireFlashing();
 
                     map.on('moveend', event => {
                         console.log('moveend ', {event, bounds: map.getBounds()});
@@ -79,7 +79,7 @@ export default function MyMap(opts: MyMapContainerProps) {
                 return <MapContainer {...mapOpts}>
                     <MyLayerControl displayMode={displayMode}/>
                     {fileList.map(file => {
-                        return <GpxTrace gpxFileInfo={file} key={file.fileName}/>;
+                        return <GpxTrace gpxFileInfo={file} key={file.fileName} flashPeriodFactor={Math.sqrt(fileList.length)}/>;
                     })}
                     <FlyToSupport flyToCommand$={flyToCommand$}/>
                 </MapContainer>;

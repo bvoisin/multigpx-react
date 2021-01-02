@@ -1,21 +1,22 @@
 import {useLeafletContext} from '@react-leaflet/core';
 import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
-import {Layer, Path} from 'leaflet';
+import {Path} from 'leaflet';
 import {getIndexedColor} from 'lib/colors';
 import {MainPageContext} from 'lib/mainPageContext';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
 
 export interface GpxTraceProps {
-    gpxFileInfo: GpxFileInfo
+    gpxFileInfo: GpxFileInfo;
+    flashPeriodFactor?: number
 }
 
-const layersByGpxFileName = new Map<string, Layer>();
-
-export default function GpxTrace({gpxFileInfo}: GpxTraceProps) {
+export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceProps) {
     const leafletContext = useLeafletContext()
     const mainPageContext = useContext(MainPageContext)
+    const [lgpx, setLgpx] = useState(null);
+
     useEffect(() => {
         const displayMode = mainPageContext.displayMode
 
@@ -35,14 +36,8 @@ export default function GpxTrace({gpxFileInfo}: GpxTraceProps) {
             }
         };
 
-        let previousLayer = layersByGpxFileName.get(gpxFileInfo.fileName);
-        if (previousLayer) {
-            leafletContext.map.removeLayer(previousLayer);
-            layersByGpxFileName.delete(gpxFileInfo.fileName)
-        }
-
-        const lgpx = createLeafletGpx(gpxFileInfo.doc, gpxOptions)
-        lgpx['on']('loaded', function (e) {
+        const loadedLgpx = createLeafletGpx(gpxFileInfo.doc, gpxOptions)
+        loadedLgpx['on']('loaded', function (e) {
             const gpx = e.target;
             mainPageContext.flyToRequest(e.target.getBounds(), {}, true)
             const tracePath: Path = gpx.getLayers()[0] as Path;
@@ -54,7 +49,7 @@ export default function GpxTrace({gpxFileInfo}: GpxTraceProps) {
 
             gpx.on('click', () => {
                 mainPageContext.showFileInfo(gpxFileInfo);
-                console.log('lgpx ', {layers: lgpx.getLayers(), lgpx})
+                console.log('lgpx ', {layers: loadedLgpx.getLayers(), lgpx: loadedLgpx})
             })
             gpx.bindTooltip(() => {
                 // const link = gpxFileInfo.link;
@@ -65,8 +60,50 @@ export default function GpxTrace({gpxFileInfo}: GpxTraceProps) {
                     '</div>';
             });
         }).addTo(leafletContext.map);
-        layersByGpxFileName.set(gpxFileInfo.fileName, lgpx as Layer);
-        return () => leafletContext.map.removeLayer(lgpx);
+        setLgpx(loadedLgpx)
+        return () => {
+            leafletContext.map.removeLayer(loadedLgpx);
+            setLgpx(null);
+        };
+    }, [gpxFileInfo.fileName]);
+
+    useEffect(() => {
+        let i = 0;
+        let currentTimer: NodeJS.Timeout;
+
+        function flash() {
+            i++;
+            const layer = lgpx && (lgpx as any).getLayers()[0];
+            if (layer) {
+                const traceEl = layer.getElement();
+                if (i % 2) {
+                    traceEl.classList.remove('flashingTraceA')
+                    traceEl.classList.add('flashingTraceB')
+                } else {
+                    traceEl.classList.remove('flashingTraceB')
+                    traceEl.classList.add('flashingTraceA')
+                }
+            } else {
+                console.log('no layer??', lgpx);
+            }
+
+            if (lgpx) {
+                const ms = (i !== 0 ? 3000 : 0) + Math.random() * 4000 * flashPeriodFactor;
+                console.log('Timeout ' + ms)
+                currentTimer = setTimeout(flash, ms); // callback
+            }
+        }
+
+        if (lgpx && (mainPageContext.displayMode == 'xmas' || mainPageContext.displayMode == 'xmas2')) {
+            flash();
+        }
+        return () => {
+            if (currentTimer) {
+                console.log('Clearing timer')
+                clearTimeout(currentTimer);
+            }
+        }
     })
+
     return null;
 }
