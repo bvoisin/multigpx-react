@@ -74,7 +74,7 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
                 showFileInfo: f => this.showFileInfo(f),
                 fileDirectory: props.fileDirectory,
-                flyToCommands$: this.bounds$,
+                flyToCommand$: this.bounds$,
                 flyToRequest: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => {
                     this.boundsRequest$.next({bounds: bounds, extend: extend, options})
                 },

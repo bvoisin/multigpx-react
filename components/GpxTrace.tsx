@@ -1,6 +1,6 @@
 import {useLeafletContext} from '@react-leaflet/core';
 import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
-import {Layer, Path} from 'leaflet';
+import {LatLngBounds, Layer, PanOptions, Path} from 'leaflet';
 import {getIndexedColor} from 'lib/colors';
 import {DisplayMode} from 'lib/mainPageContext';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
@@ -10,11 +10,12 @@ import React, {useEffect} from 'react';
 export interface GpxTraceProps {
     gpxFileInfo: GpxFileInfo
     displayMode: DisplayMode
+    flyToRequestCb: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => void
 }
 
 const layersByGpxFileName = new Map<string, Layer>();
 
-export default function GpxTrace({gpxFileInfo, displayMode}: GpxTraceProps) {
+export default function GpxTrace({gpxFileInfo, displayMode, flyToRequestCb}: GpxTraceProps) {
     const context = useLeafletContext()
     useEffect(() => {
 
@@ -43,7 +44,7 @@ export default function GpxTrace({gpxFileInfo, displayMode}: GpxTraceProps) {
         const lgpx = createLeafletGpx(gpxFileInfo.doc, gpxOptions)
         lgpx['on']('loaded', function (e) {
             const gpx = e.target;
-            // TODO flyToRequest(e.target.getBounds(), {}, true)
+            flyToRequestCb(e.target.getBounds(), {}, true)
 
             if (displayMode == 'xmas' || displayMode == 'xmas2') {
                 const tracePath: Path = gpx.getLayers()[0] as Path;

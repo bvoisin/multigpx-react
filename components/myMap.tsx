@@ -1,14 +1,13 @@
 import {MapContainer, MapContainerProps} from 'react-leaflet';
-import React, {useEffect, useState} from 'react';
-import L, {Map as LeafletMap} from 'leaflet';
+import React, {useState} from 'react';
+import {Map as LeafletMap} from 'leaflet';
 import {GpxFileRefs} from 'pages/api/getGpxFileList';
 import {MainPageContext} from 'lib/mainPageContext';
 import MyLayerControl from 'components/myMapLayerControl';
-import {Subscription} from 'rxjs';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
-import {useLeafletContext} from '@react-leaflet/core';
 import GpxTrace from 'components/GpxTrace';
+import FlyToSupport from 'components/FlyToSupport';
 
 export interface MyMapContainerProps extends MapContainerProps {
 
@@ -20,30 +19,16 @@ export interface MyMapContainerState {
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
-    let subscription: Subscription;
 
     const [{fileList}, setState] = useState<MyMapContainerState>({fileList: []});
 
     return (
         <MainPageContext.Consumer>
-            {({showFileInfo, fileDirectory, displayMode, flyToCommands$, flyToRequest}) => {
-
-                function subscribeToFlyToCommands(map: LeafletMap) {
-                    if (subscription) {
-                        subscription.unsubscribe();
-                        subscription = null;
-                    }
-
-                    subscription = flyToCommands$.subscribe(cmd => {
-                        console.log('Fly To ', cmd)
-                        map.flyToBounds(cmd.bounds, {animate: true, duration: 1, noMoveStart: true, ...cmd.options})
-                    });
-                }
+            {({showFileInfo, fileDirectory, displayMode, flyToCommand$, flyToRequest}) => {
 
                 async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs, showFile: (file: GpxFileInfo) => void) {
                     const promises = gpxFileList.map((gpxFileRef) => {
-                        const i = parseToGpxFileInfo2(gpxFileRef);
-                        return i;
+                        return parseToGpxFileInfo2(gpxFileRef);
                     });
                     return Promise.all(promises).then(lst => setState(s => {
                         console.log('parsed ', {lst})
@@ -71,7 +56,6 @@ export default function MyMap(opts: MyMapContainerProps) {
                     // TODO followInNewGpxFiles(map);
 
                     loadGpxTraces(map, fileDirectory);
-                    subscribeToFlyToCommands(map);
 
                     // TODO fireFlashing();
 
@@ -96,8 +80,9 @@ export default function MyMap(opts: MyMapContainerProps) {
                 return <MapContainer {...mapOpts}>
                     <MyLayerControl displayMode={displayMode}/>
                     {fileList.map(file => {
-                        return <GpxTrace displayMode={displayMode} gpxFileInfo={file}/>;
+                        return <GpxTrace displayMode={displayMode} gpxFileInfo={file} flyToRequestCb={flyToRequest} key={file.fileName}/>;
                     })}
+                    <FlyToSupport flyToCommand$={flyToCommand$}/>
                 </MapContainer>;
             }}
         </MainPageContext.Consumer>

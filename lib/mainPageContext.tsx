@@ -11,7 +11,7 @@ export interface DroppedMapsContextType {
     showFileInfo: (file: GpxFileInfo) => void
     fileDirectory: string;
     displayMode: DisplayMode;
-    flyToCommands$: Observable<FlyToCommand>;
+    flyToCommand$: Observable<FlyToCommand>;
 
     flyToRequest(bounds: LatLngBounds, options: PanOptions, extend: boolean)
 }
