@@ -7,6 +7,7 @@ import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import GpxTrace from 'components/GpxTrace';
 import FlyToSupport from 'components/FlyToSupport';
 import GpxTraceLoader from 'components/GpxTraceLoader';
+import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
 
 export interface MyMapContainerProps extends MapContainerProps {
 
@@ -20,12 +21,13 @@ export interface MyMapContainerState {
 export default function MyMap(opts: MyMapContainerProps) {
 
     const [{loadedGpxFiles}, setState] = useState<MyMapContainerState>({loadedGpxFiles: []});
-    const {fileDirectory, displayMode, flyToCommand$} = useContext(MainPageContext)
+    const {fileDirectory, displayMode, flyToCommand$, newGpxFilesToDraw$} = useContext(MainPageContext)
 
     function fillMap(map: LeafletMap) {
         // console.log('fillMap', {map});
-        // TODO followInNewGpxFiles(map);
-
+        newGpxFilesToDraw$.subscribe(gpxFileInfo => {
+            addTraceToMap(gpxFileInfo);
+        });
         map.on('moveend', event => {
             console.log('moveend ', {event, bounds: map.getBounds()});
         })
@@ -56,5 +58,6 @@ export default function MyMap(opts: MyMapContainerProps) {
         })}
         <GpxTraceLoader directory={fileDirectory} addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
         <FlyToSupport flyToCommand$={flyToCommand$}/>
+        <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
     </MapContainer>;
 }
