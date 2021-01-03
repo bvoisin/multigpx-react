@@ -101,67 +101,44 @@ img {
     /*animation-direction: alternate;*/
 }
 
-.flashingTrace_delay_0 {
-    animation-delay: 0s;
+.flashingTrace {
+    stroke-width: 1;
+    stroke-opacity: 0.2;
+    /*animation-name: traceTransparency;*/
+    /*!*animation-duration: 5s;*!*/
+    /*animation-iteration-count: infinite;*/
+    transform: translateZ(0); /* force GPX to reduce CPU usage */
+    /*animation-direction: alternate;*/
 }
 
-.flashingTrace_duration_0 {
-    animation-duration: 5s;
+
+@keyframes flashSelected {
+    0% {
+    }
+    10% {
+        stroke-opacity: 1;
+    }
+    20% {
+        stroke-opacity: 0.2;
+    }
+    30% {
+        stroke-opacity: 1;
+    }
+    40% {
+        stroke-opacity: 0.2;
+    }
+    100% {
+        stroke-opacity: 1;
+    }
 }
 
-.flashingTrace_delay_1 {
-    animation-delay: 1s;
+path.selectedTrace {
+    stroke-width: 4;
+    stroke-opacity: 1;
+    animation-name: flashSelected;
+    animation-duration: 1s;
 }
 
-.flashingTrace_duration_1 {
-    animation-duration: 6.1s;
+path.notTheSelectedTrace {
+    stroke-opacity: 0.5;
 }
-
-.flashingTrace_delay_2 {
-    animation-delay: 2s;
-}
-
-.flashingTrace_duration_2 {
-    animation-duration: 5.2s;
-}
-
-.flashingTrace_delay_3 {
-    animation-delay: 3s;
-}
-
-.flashingTrace_duration_3 {
-    animation-duration: 5.3s;
-}
-
-.flashingTrace_delay_4 {
-    animation-delay: 4s;
-}
-
-.flashingTrace_duration_4 {
-    animation-duration: 4.3s;
-}
-
-.flashingTrace_delay_5 {
-    animation-delay: 5s;
-}
-
-.flashingTrace_duration_5 {
-    animation-duration: 3.5s;
-}
-
-.flashingTrace_delay_6 {
-    animation-delay: 1.5s;
-}
-
-.flashingTrace_duration_6 {
-    animation-duration: 5.6s;
-}
-
-.flashingTrace_delay_7 {
-    animation-delay: 2.5s;
-}
-
-.flashingTrace_duration_7 {
-    animation-duration: 6.3s;
-}
-

@@ -48,7 +48,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             }
 
             gpx.on('click', () => {
-                mainPageContext.showFileInfo(gpxFileInfo);
+                mainPageContext.selectFile(gpxFileInfo);
                 console.log('lgpx ', {layers: loadedLgpx.getLayers(), lgpx: loadedLgpx})
             })
             gpx.bindTooltip(() => {
@@ -67,6 +67,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
         };
     }, [gpxFileInfo.fileName]);
 
+    // flashing (XMax)
     useEffect(() => {
         let i = 0;
         let currentTimer: NodeJS.Timeout;
@@ -104,6 +105,24 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             }
         }
     })
+
+    // selection
+    useEffect(() => {
+        const layer = lgpx && (lgpx as any).getLayers()[0];
+        if (layer) {
+            const traceEl = layer.getElement();
+            const setClass = (className: string, value: boolean) => {
+                if (value) {
+                    traceEl.classList.add(className)
+                } else {
+                    traceEl.classList.remove(className)
+                }
+            }
+            setClass('notTheSelectedTrace', mainPageContext.selectedFileName && mainPageContext.selectedFileName !== gpxFileInfo.fileName)
+            setClass('selectedTrace', mainPageContext.selectedFileName === gpxFileInfo.fileName)
+        }
+
+    });
 
     return null;
 }

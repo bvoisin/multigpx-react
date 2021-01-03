@@ -2,7 +2,6 @@ import Head from 'next/head'
 import React from 'react';
 import dynamic from 'next/dynamic';
 import {merge, Subject} from 'rxjs';
-import FilePopup from 'components/filePopup';
 import {reduceGpx} from 'lib/gpx/reduceGpx';
 import {concatMap, debounceTime, filter, scan, shareReplay} from 'rxjs/operators';
 import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
@@ -25,7 +24,6 @@ interface MainPageState {
     droppedMapsContext: DroppedMapsContextType;
     position: [number, number];
     zoom: number;
-    shownFile?: GpxFileInfo
 }
 
 type BoundsRequest = { bounds: LatLngBounds, extend: boolean, options: PanOptions };
@@ -41,7 +39,7 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
     readonly newGpxFilesToDraw2$ = this.droppedGpxFile$.pipe(
         concatMap(file =>
             reduceGpx(file)
-                .then(gpxDoc => parseToGpxFileInfo(gpxDoc, file.name))
+                .then(gpxDoc => parseToGpxFileInfo(gpxDoc, this.props.fileDirectory, file.name))
                 .then(fileInfo => uploadGpx(fileInfo, this.state.droppedMapsContext.fileDirectory).then(() => fileInfo))
         )
     )
@@ -71,7 +69,8 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
             droppedMapsContext: {
                 newGpxFilesToDraw$: this.newGpxFilesToDraw$,
                 newGpxFileToDraw: f => this.otherGpxFilesToDraw$$.next(f),
-                showFileInfo: f => this.showFileInfo(f),
+                selectFile: f => this.selectFile(f),
+                selectedFileName: null,
                 fileDirectory: props.fileDirectory,
                 flyToCommand$: this.bounds$,
                 flyToRequest: (bounds: LatLngBounds, options: PanOptions, extend: boolean) => {
@@ -84,8 +83,8 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
         }
     }
 
-    showFileInfo(shownFile: GpxFileInfo) {
-        this.setState({shownFile})
+    selectFile(selectedFile: GpxFileInfo) {
+        this.setState(s => ({...s, droppedMapsContext: {...s.droppedMapsContext, selectedFileName: selectedFile?.fileName}}));
     }
 
     async dropHandler(event: React.DragEvent<HTMLDivElement>) {
@@ -109,7 +108,6 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
             <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)}>
               <DynamicMyMap center={this.state.position} zoom={this.state.zoom} style={{height: '100vh', width: '100vw'}}/>
             </div>
-            <FilePopup file={this.state.shownFile} closePopup={() => this.showFileInfo(null)}/>
           </MainPageContext.Provider>
         </div>;
     }

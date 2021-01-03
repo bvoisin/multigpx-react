@@ -19,7 +19,7 @@ export default function GpxTraceLoader({directory, addTraceToMapCb, removeTraces
     useEffect(() => {
         async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs): Promise<GpxFileInfo[]> {
             const promises = gpxFileList.map((gpxFileRef) => {
-                return parseToGpxFileInfo2(gpxFileRef).then(fileInfo => {
+                return parseToGpxFileInfo2(gpxFileRef, directory).then(fileInfo => {
                     addTraceToMapCb(fileInfo);
                     setLoadedFiles((alreadyLoadedFiles) => ([...alreadyLoadedFiles, fileInfo]))
                     return fileInfo;

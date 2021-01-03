@@ -19,7 +19,7 @@ const GPX_NS = 'http://www.topografix.com/GPX/1/1';
 const GPX_NS_RESOLVER = () => GPX_NS;
 
 
-export function parseToGpxFileInfo(doc: Document, fileName: string) {
+export function parseToGpxFileInfo(doc: Document, fileDirectory: string, fileName: string) {
     let getStringValue = function (expression: string, nameToWarnIfEmpty?: string) {
         let v = doc.evaluate(expression, doc, GPX_NS_RESOLVER, XPathResult.STRING_TYPE, null).stringValue;
         if (!v && nameToWarnIfEmpty) {
@@ -32,17 +32,17 @@ export function parseToGpxFileInfo(doc: Document, fileName: string) {
     const link = getStringValue(linkXPath);
 
 
-    return new GpxFileInfo(fileName, doc, traceName, athleteName, link);
+    return new GpxFileInfo(fileDirectory, fileName, doc, traceName, athleteName, link);
 }
 
-export async function parseToGpxFileInfo2(gpxFileUrl: GpxFileRef | File): Promise<GpxFileInfo> {
+export async function parseToGpxFileInfo2(gpxFileUrl: GpxFileRef | File, fileDirectory: string): Promise<GpxFileInfo> {
     const f = await getGpxXmlText(gpxFileUrl);
     const doc = f.doc;
 
-    return parseToGpxFileInfo(doc, f.fileName);
+    return parseToGpxFileInfo(doc, fileDirectory, f.fileName);
 }
 
-export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string): Promise<GpxFileInfo> {
+export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {
     function setValue(xPath: string, v: string) {
         if (v !== undefined) {
             const node: Node = f.doc.evaluate(xPath, f.doc, GPX_NS_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -78,9 +78,9 @@ export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>, 
     setValue(athleteNameXPath, values.athleteName);
     setValue(traceNameXPath, values.traceName);
     setValue(linkXPath, values.link);
-    const newFile = parseToGpxFileInfo(f.doc, f.fileName);
+    const newFile = parseToGpxFileInfo(f.doc, f.fileDirectory, f.fileName);
     const asText = new XMLSerializer().serializeToString(f.doc)
 
     console.log('New doc ', {newFile, asText});
-    return uploadGpxText(f.fileName, fileDirectory, asText).then(() => newFile);
+    return uploadGpxText(f.fileName, f.fileDirectory, asText).then(() => newFile);
 }
