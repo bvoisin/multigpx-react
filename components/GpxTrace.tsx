@@ -48,7 +48,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             }
 
             gpx.on('click', () => {
-                mainPageContext.showFileInfo(gpxFileInfo);
+                mainPageContext.selectFile(gpxFileInfo);
                 console.log('lgpx ', {layers: loadedLgpx.getLayers(), lgpx: loadedLgpx})
             })
             gpx.bindTooltip(() => {

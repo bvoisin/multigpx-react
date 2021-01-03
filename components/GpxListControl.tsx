@@ -1,14 +1,13 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Accordion, AccordionDetails, AccordionSummary, TextField, Typography} from '@material-ui/core';
 import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {updateGpxMetaInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {Form, Formik} from 'formik';
 import {downloadXml} from 'lib/io/downloadInMemoryFile';
+import {MainPageContext} from 'lib/mainPageContext';
 
 export interface GpxListControlProps {
     fileList: GpxFileInfo[];
-    selectedFileName: string;
-    selectFileCb: (file: GpxFileInfo) => void
 }
 
 
@@ -16,12 +15,14 @@ async function save(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
     return updateGpxMetaInfo(f, values);
 }
 
-export function GpxListControl({fileList, selectedFileName, selectFileCb}: GpxListControlProps) {
+export function GpxListControl({fileList}: GpxListControlProps) {
     // Memoize the content so it's not affected by position changes
+    const {selectedFileName, selectFile} = useContext(MainPageContext)
+
     const content = <div className="gpxList">
         {
             fileList.map(f =>
-                <Accordion expanded={f.fileName === selectedFileName} onChange={() => selectFileCb(f)} key={'info' + f.fileName}>
+                <Accordion expanded={f.fileName === selectedFileName} onChange={() => selectFile(f)} key={'info' + f.fileName}>
                     <AccordionSummary>
                         <Typography>{f.fileName}</Typography>
                     </AccordionSummary>
