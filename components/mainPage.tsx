@@ -41,7 +41,7 @@ class MainPage extends React.Component<MainPageProps, MainPageState> {
     readonly newGpxFilesToDraw2$ = this.droppedGpxFile$.pipe(
         concatMap(file =>
             reduceGpx(file)
-                .then(gpxDoc => parseToGpxFileInfo(gpxDoc, file.name))
+                .then(gpxDoc => parseToGpxFileInfo(gpxDoc, this.props.fileDirectory, file.name))
                 .then(fileInfo => uploadGpx(fileInfo, this.state.droppedMapsContext.fileDirectory).then(() => fileInfo))
         )
     )

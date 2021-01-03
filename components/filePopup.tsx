@@ -23,10 +23,10 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
         }
         console.log('FilePopup', f)
         return <MainPageContext.Consumer>
-            {({ newGpxFileToDraw, fileDirectory}) =>
+            {({newGpxFileToDraw}) =>
                 <Formik initialValues={{...f}}
                         onSubmit={values => {
-                            FilePopup.save(f, values, fileDirectory).then(fileInfo => newGpxFileToDraw(fileInfo));
+                            FilePopup.save(f, values).then(fileInfo => newGpxFileToDraw(fileInfo));
                         }}>
                     {props =>
                         <Dialog onClose={() => this.props.closePopup()} open={true} aria-labelledby="form-dialog-title">
@@ -70,7 +70,7 @@ export default class FilePopup extends React.Component<FilePopupProps, { file: G
             }</MainPageContext.Consumer>
     }
 
-    private static async save(f: GpxFileInfo, values: Partial<GpxFileInfo>, fileDirectory: string) {
-        return updateGpxMetaInfo(f, values, fileDirectory);
+    private static async save(f: GpxFileInfo, values: Partial<GpxFileInfo>) {
+        return updateGpxMetaInfo(f, values);
     }
 }

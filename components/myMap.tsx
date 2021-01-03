@@ -9,6 +9,7 @@ import FlyToSupport from 'components/FlyToSupport';
 import GpxTraceLoader from 'components/GpxTraceLoader';
 import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
 import {Square} from 'components/square';
+import {GpxListControl} from 'components/gpxListControl';
 
 export interface MyMapContainerProps extends MapContainerProps {
 
@@ -16,13 +17,14 @@ export interface MyMapContainerProps extends MapContainerProps {
 
 export interface MyMapContainerState {
     loadedGpxFiles: GpxFileInfo[]
+    selectedFile?: GpxFileInfo;
+    selectedFileName?: string;
 }
-
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
 
-    const [{loadedGpxFiles}, setState] = useState<MyMapContainerState>({loadedGpxFiles: []});
+    const [{loadedGpxFiles, selectedFileName}, setState] = useState<MyMapContainerState>({loadedGpxFiles: []});
     const {fileDirectory, displayMode, flyToCommand$, newGpxFilesToDraw$} = useContext(MainPageContext)
 
     function fillMap(map: LeafletMap) {
@@ -37,6 +39,12 @@ export default function MyMap(opts: MyMapContainerProps) {
 
     function addTraceToMap(f: GpxFileInfo) {
         setState(({loadedGpxFiles}) => ({loadedGpxFiles: [...loadedGpxFiles, f]}))
+    }
+
+    function selectFile(file: GpxFileInfo | string) {
+        const selectedFile: GpxFileInfo = typeof file === 'string' ? loadedGpxFiles.find(f => f.fileName === file) : file;
+
+        setState(s => ({...s, selectedFile, selectedFileName: selectedFile?.fileName}))
     }
 
     function removeTracesFromMap(files: (GpxFileInfo | string)[]) {
@@ -62,5 +70,6 @@ export default function MyMap(opts: MyMapContainerProps) {
         <FlyToSupport flyToCommand$={flyToCommand$}/>
         <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
         <Square center={[48.864716, 2.4]} size={1000}/>
+        <GpxListControl fileList={loadedGpxFiles} selectedFileName={selectedFileName} selectFileCb={selectFile}/>
     </MapContainer>;
 }
