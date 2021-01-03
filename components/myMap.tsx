@@ -8,6 +8,7 @@ import GpxTrace from 'components/GpxTrace';
 import FlyToSupport from 'components/FlyToSupport';
 import GpxTraceLoader from 'components/GpxTraceLoader';
 import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
+import {Square} from 'components/square';
 
 export interface MyMapContainerProps extends MapContainerProps {
 
@@ -16,6 +17,7 @@ export interface MyMapContainerProps extends MapContainerProps {
 export interface MyMapContainerState {
     loadedGpxFiles: GpxFileInfo[]
 }
+
 
 // export default function MyMap({children, position, zoom = 10, whenCreated}: { children?: any, position: LatLngExpression, zoom: number, whenCreated?: (map: LeafletMap) => void }) {
 export default function MyMap(opts: MyMapContainerProps) {
@@ -52,12 +54,13 @@ export default function MyMap(opts: MyMapContainerProps) {
     }
     console.log('State ', loadedGpxFiles);
     return <MapContainer {...mapOpts}>
-        <MyLayerControl displayMode={displayMode}/>
         {loadedGpxFiles.map(file => {
             return <GpxTrace gpxFileInfo={file} key={file.fileName} flashPeriodFactor={Math.sqrt(loadedGpxFiles.length)}/>;
         })}
+        <MyLayerControl displayMode={displayMode}/>
         <GpxTraceLoader directory={fileDirectory} addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
         <FlyToSupport flyToCommand$={flyToCommand$}/>
         <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
+        <Square center={[48.864716, 2.4]} size={1000}/>
     </MapContainer>;
 }
