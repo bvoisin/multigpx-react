@@ -100,3 +100,35 @@ img {
     transform: translateZ(0); /* force GPX to reduce CPU usage */
     /*animation-direction: alternate;*/
 }
+
+.flashingTrace {
+    stroke-width: 1;
+    stroke-opacity: 0.2;
+    /*animation-name: traceTransparency;*/
+    /*!*animation-duration: 5s;*!*/
+    /*animation-iteration-count: infinite;*/
+    transform: translateZ(0); /* force GPX to reduce CPU usage */
+    /*animation-direction: alternate;*/
+}
+
+
+@keyframes flashSelected {
+    0% {
+        stroke-opacity: 0.2;
+    }
+    100% {
+        stroke-opacity: 1;
+    }
+}
+
+path.selectedTrace {
+    stroke-width: 4;
+    stroke-opacity: 1;
+    animation-name: flashSelected;
+    animation-duration: 0.25s;
+    animation-iteration-count: 4;
+}
+
+path.notTheSelectedTrace {
+    stroke-opacity: 0.75;
+}

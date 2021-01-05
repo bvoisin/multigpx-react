@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme: Theme) =>
             }
         },
         traceName: {
-            fontSize: theme.typography.pxToRem(10),
+            fontSize: theme.typography.pxToRem(12),
             fontWeight: theme.typography.fontWeightRegular,
         },
         header: {
@@ -71,15 +71,21 @@ export function GpxListControl({fileList}: GpxListControlProps) {
     const classes = useStyles();
 
     const content = <div className={classes.root}>
-        <div className={classes.header}>
+        <div
+            className={classes.header}
+            onClick={(e) => {
+                console.log('Opening GpxListControl ' + opened + ' ' + e.isTrusted, e)
+                if (e.isTrusted) {
+                    e.stopPropagation();
+                    setOpened(!opened);
+                }
+            }}>
             <span>Trace List</span>
             <IconButton
                 className={clsx(classes.expand, {
                     [classes.expandOpen]: opened,
                 })}
-                onClick={() => {
-                    setOpened(!opened);
-                }}
+
                 aria-expanded={opened}
                 aria-label="show list"
             >
