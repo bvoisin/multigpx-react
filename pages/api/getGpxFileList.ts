@@ -18,7 +18,7 @@ async function listFiles$(fileNamePrefix: string): Promise<GpxFileRefs> {
             loginToAws();
             const s3 = new aws.S3();
             s3.listObjects({Delimiter: '/', Prefix: fileNamePrefix, Bucket: process.env.MY_AWS_BUCKET_NAME}, function (err, data) {
-                console.log('data ', {err, data})
+                // console.log('data ', {err, data})
                 const fileList$ = data.Contents
                     .map(f => f.Key)
                     .filter(key => key.endsWith('.gpx'))
@@ -38,6 +38,6 @@ export default async (request: NextApiRequest, res: NextApiResponse<GpxFileRefs>
     // res.status(200).json(['a', 'b']);
     const filePrefix = getFilePrefix(request)
     const fileList = await listFiles$(filePrefix)
-    console.log(`lst ${filePrefix}:`, {fileList})
+    // console.log(`lst ${filePrefix}:`, {fileList})
     res.status(200).json(fileList);
 };
