@@ -3,7 +3,7 @@ import MainPage from 'components/mainPage';
 import {DisplayMode} from 'lib/mainPageContext';
 
 // Current URL is '/'
-function Index() {
+function DirectoryPage() {
     const router = useRouter()
 
     const {directory, mode} = router.query
@@ -16,4 +16,4 @@ function Index() {
     }
 }
 
-export default Index
+export default DirectoryPage
