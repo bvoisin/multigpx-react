@@ -100,8 +100,3 @@ img {
     transform: translateZ(0); /* force GPX to reduce CPU usage */
     /*animation-direction: alternate;*/
 }
-
-.gpxList {
-    width: 500px;
-    min-height: 300px;
-}

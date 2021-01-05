@@ -8,7 +8,6 @@ import GpxTrace from 'components/GpxTrace';
 import FlyToSupport from 'components/FlyToSupport';
 import GpxTraceLoader from 'components/GpxTraceLoader';
 import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
-import {Square} from 'components/square';
 import {GpxListControl} from 'components/GpxListControl';
 
 export interface MyMapContainerProps extends MapContainerProps {
@@ -63,7 +62,7 @@ export default function MyMap(opts: MyMapContainerProps) {
         <GpxTraceLoader directory={fileDirectory} addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
         <FlyToSupport flyToCommand$={flyToCommand$}/>
         <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
-        <Square center={[48.864716, 2.4]} size={1000}/>
+        {/*<Square center={[48.864716, 2.4]} size={1000}/>*/}
         <GpxListControl fileList={loadedGpxFiles}/>
     </MapContainer>;
 }
