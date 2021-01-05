@@ -8,7 +8,7 @@ import GpxTrace from 'components/GpxTrace';
 import FlyToSupport from 'components/FlyToSupport';
 import GpxTraceLoader from 'components/GpxTraceLoader';
 import DroppedGpxTraceLoader from 'components/DroppedGpxTraceLoader';
-import {GpxListControl} from 'components/GpxListControl';
+import {GpxListControl} from 'components/gpxList/GpxListControl';
 
 export interface MyMapContainerProps extends MapContainerProps {
 

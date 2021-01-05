@@ -114,6 +114,17 @@ img {
 
 @keyframes flashSelected {
     0% {
+    }
+    10% {
+        stroke-opacity: 1;
+    }
+    20% {
+        stroke-opacity: 0.2;
+    }
+    30% {
+        stroke-opacity: 1;
+    }
+    40% {
         stroke-opacity: 0.2;
     }
     100% {
@@ -125,10 +136,9 @@ path.selectedTrace {
     stroke-width: 4;
     stroke-opacity: 1;
     animation-name: flashSelected;
-    animation-duration: 0.25s;
-    animation-iteration-count: 4;
+    animation-duration: 1s;
 }
 
 path.notTheSelectedTrace {
-    stroke-opacity: 0.75;
+    stroke-opacity: 0.5;
 }
