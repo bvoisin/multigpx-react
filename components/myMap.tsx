@@ -37,8 +37,11 @@ export default function MyMap(opts: MyMapContainerProps) {
         })
     }
 
-    function addTraceToMap(f: GpxFileInfo) {
-        setState(({loadedGpxFiles}) => ({loadedGpxFiles: [...loadedGpxFiles, f]}))
+    function addTraceToMap(newFile: GpxFileInfo) {
+        setState(({loadedGpxFiles}) => {
+            const otherFiles = loadedGpxFiles.filter(f => f.fileName !== newFile.fileName)
+            return ({loadedGpxFiles: [...otherFiles, newFile]});
+        })
     }
 
     function removeTracesFromMap(files: (GpxFileInfo | string)[]) {
@@ -54,7 +57,6 @@ export default function MyMap(opts: MyMapContainerProps) {
             fillMap(map);
         },
     }
-    console.log('State ', loadedGpxFiles);
     return <Div100vh>
         <MapContainer {...mapOpts}>
             {loadedGpxFiles.map(file => {
@@ -64,9 +66,7 @@ export default function MyMap(opts: MyMapContainerProps) {
             <GpxTraceLoader directory={fileDirectory} addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
             <FlyToSupport flyToCommand$={flyToCommand$}/>
             <DroppedGpxTraceLoader addTraceToMapCb={addTraceToMap} removeTracesFromMapCb={removeTracesFromMap}/>
-            {/*<Square center={[48.864716, 2.4]} size={1000}/>*/}
             <GpxListControl fileList={loadedGpxFiles}/>
-            {/*<MinimapControl position="bottomleft" zoom={5}/>*/}
         </MapContainer>
     </Div100vh>;
 }

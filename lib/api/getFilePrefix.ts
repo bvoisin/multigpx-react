@@ -8,8 +8,6 @@ export function getFilePrefix(request: NextApiRequest) {
     }
     const dir2 = dir as string
 
-    console.log('getFilePrefix', {dir, dir2})
-
     if (!dir2.match(/^[^\/]+$/)) {
         throw new Error(`Bad directory '${dir2}'`)
     }

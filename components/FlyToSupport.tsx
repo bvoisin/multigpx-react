@@ -14,7 +14,6 @@ export default function FlyToSupport({flyToCommand$}: FlyToSupportProps) {
     useEffect(() => {
 
         const subscription = flyToCommand$.subscribe(cmd => {
-            console.log('Fly To ', cmd)
             context.map.flyToBounds(cmd.bounds, {animate: true, duration: 1, noMoveStart: true, ...cmd.options})
         });
         return () => subscription.unsubscribe();

@@ -96,7 +96,12 @@ export function GpxListControl({fileList}: GpxListControlProps) {
                                       ref={selected ? selectedTraceRef : undefined}
                                       className={classes.traceAccordion}
                                       expanded={selected}
-                                      onChange={(event, expanded) => selectFile(expanded && f)}>
+                                      onChange={(e, expanded) => {
+                                          if (e.isTrusted) { // in DevTools/ mobileDevice simulator we receive 2 events ???
+                                              e.stopPropagation();
+                                              selectFile(expanded && f);
+                                          }
+                                      }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                             <Typography className={classes.traceName}>{f.traceName}</Typography>
                         </AccordionSummary>

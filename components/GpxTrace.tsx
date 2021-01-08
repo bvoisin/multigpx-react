@@ -49,7 +49,6 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
 
             gpx.on('click', () => {
                 mainPageContext.selectFile(gpxFileInfo);
-                console.log('lgpx ', {layers: loadedLgpx.getLayers(), lgpx: loadedLgpx})
             })
             gpx.bindTooltip(() => {
                 // const link = gpxFileInfo.link;
@@ -65,7 +64,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             leafletContext.map.removeLayer(loadedLgpx);
             setLgpx(null);
         };
-    }, [gpxFileInfo.fileName]);
+    }, [gpxFileInfo.fileName, gpxFileInfo.athleteName, gpxFileInfo.traceName]);
 
     // flashing (XMax)
     useEffect(() => {
@@ -85,12 +84,11 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
                     traceEl.classList.add('flashingTraceA')
                 }
             } else {
-                console.log('no layer??', lgpx);
+                console.warn('no layer??', lgpx);
             }
 
             if (lgpx) {
                 const ms = (i !== 0 ? 3000 : 0) + Math.random() * 4000 * flashPeriodFactor;
-                console.log('Timeout ' + ms)
                 currentTimer = setTimeout(flash, ms); // callback
             }
         }
@@ -100,7 +98,6 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
         }
         return () => {
             if (currentTimer) {
-                console.log('Clearing timer')
                 clearTimeout(currentTimer);
             }
         }

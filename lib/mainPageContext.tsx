@@ -7,7 +7,7 @@ export type DisplayMode = 'def' | 'xmas' | 'xmas2'
 
 export interface DroppedMapsContextType {
     newGpxFilesToDraw$: Observable<GpxFileInfo>;
-    newGpxFileToDraw: (file: GpxFileInfo) => void;
+    drawFile: (file: GpxFileInfo) => void;
     selectFile: (file: GpxFileInfo) => void;
     selectedFileName: string;
     fileDirectory: string;
