@@ -24,8 +24,7 @@ const styles = () =>
             width: '100vw'
         },
         mapContainer: {
-            height: '100vh',
-            width: '100vw'
+            height: '100%'
         }
     });
 
@@ -123,7 +122,7 @@ const MainPage = withStyles<any, any, MainPageProps>(styles, {withTheme: true})(
               </Head>
               <MainPageContext.Provider value={this.state.droppedMapsContext}>
                 <div onDrop={e => this.dropHandler(e)} onDragOver={e => this.dragOverHandler(e)} className={classes.dropZone}>
-                  <DynamicMyMap center={this.state.position} zoom={this.state.zoom} className="mapContainer"/>
+                  <DynamicMyMap center={this.state.position} zoom={this.state.zoom} className={classes.mapContainer}/>
                 </div>
               </MainPageContext.Provider>
             </div>;

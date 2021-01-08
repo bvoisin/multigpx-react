@@ -26,10 +26,6 @@ img {
     display: block;
 }
 
-.mapContainer {
-    height: 100%; /* Fallback */
-}
-
 @keyframes traceTransparencyA {
     0% {
         stroke-opacity: 0;
