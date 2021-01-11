@@ -1,6 +1,8 @@
-export function downloadXml(filename: string, doc: Document) {
-    const asText = new XMLSerializer().serializeToString(doc)
-    download(filename, asText)
+import {TraceDataWithXml} from 'lib/io/getTraces';
+
+export function downloadXml(trace: TraceDataWithXml) {
+    const asText = new XMLSerializer().serializeToString(trace.xml)
+    download(trace.origFileName, asText)
 }
 
 export function download(filename: string, text: string) {

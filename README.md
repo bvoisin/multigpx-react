@@ -55,3 +55,14 @@ TODO
     * s3:PutObjectAcl
 * Create an access key on this user → `MY_AWS_ACCESS_KEY` and `MY_AWS_SECRET_KEY`
 
+## MongoDB
+
+* What:
+  * Trace metadata (traceName, athleteName, link)
+  * Likes
+  * Comments
+* On laisse le GPX sur S3
+* Lorsque le user drop un fichier :
+  * l'UI envoi les infos extraites du fichier
+  * L'API créé un UUID, sauvegarde en BDD les infos, renvoit une URL de Post S3
+  * Le client post le fichier sur S3

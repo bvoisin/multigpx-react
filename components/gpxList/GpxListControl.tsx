@@ -1,13 +1,14 @@
 import React, {useContext, useLayoutEffect} from 'react';
 import {Accordion, AccordionDetails, AccordionSummary, Collapse, createStyles, IconButton, makeStyles, Theme, Typography} from '@material-ui/core';
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
 import clsx from 'clsx';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {GpxTraceDetails} from 'components/gpxList/GpxTraceDetails';
+import {TraceData} from 'lib/api/MongoDao';
+import {TraceDataWithXml} from 'lib/io/getTraces';
 
 export interface GpxListControlProps {
-    fileList: GpxFileInfo[];
+    fileList: TraceDataWithXml[];
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -63,7 +64,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 export function GpxListControl({fileList}: GpxListControlProps) {
     // Memoize the content so it's not affected by position changes
-    const {selectedFileName, selectFile} = useContext(MainPageContext)
+    const {selectedFileId, selectFile} = useContext(MainPageContext)
     const [opened, setOpened] = React.useState(false);
     const classes = useStyles();
     const selectedTraceRef = React.useRef<Element>(null);
@@ -91,8 +92,8 @@ export function GpxListControl({fileList}: GpxListControlProps) {
         </div>
         <Collapse in={opened} timeout="auto" unmountOnExit className={classes.traceList}>
             {opened && fileList.map(f => {
-                    const selected = f.fileName === selectedFileName;
-                    return <Accordion key={'info' + f.fileName}
+                    const selected = f._id === selectedFileId;
+                    return <Accordion key={'info' + f._id}
                                       ref={selected ? selectedTraceRef : undefined}
                                       className={classes.traceAccordion}
                                       expanded={selected}
@@ -106,7 +107,7 @@ export function GpxListControl({fileList}: GpxListControlProps) {
                             <Typography className={classes.traceName}>{f.traceName}</Typography>
                         </AccordionSummary>
                         <AccordionDetails className={classes.details}>
-                            <GpxTraceDetails gpxFileInfo={f}/>
+                            <GpxTraceDetails trace={f}/>
                         </AccordionDetails>
                     </Accordion>;
                 }

@@ -1,17 +1,17 @@
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import {Form, Formik} from 'formik';
 import {TextField} from '@material-ui/core';
 import {downloadXml} from 'lib/io/downloadInMemoryFile';
 import React, {useContext} from 'react';
-import {updateGpxMetaInfo} from 'lib/gpx/parseToGpxFileInfo';
 import {MainPageContext} from 'lib/mainPageContext';
+import {updateTrace} from 'lib/io/updateTrace';
+import {TraceDataWithXml} from 'lib/io/getTraces';
 
-export function GpxTraceDetails({gpxFileInfo}: { gpxFileInfo: GpxFileInfo }) {
-    const {drawFile} = useContext(MainPageContext)
-    return <Formik initialValues={{...gpxFileInfo}}
+export function GpxTraceDetails({trace}: { trace: TraceDataWithXml }) {
+    const {redrawFile} = useContext(MainPageContext)
+    return <Formik initialValues={{...trace}}
                    onSubmit={values => {
-                       return updateGpxMetaInfo(gpxFileInfo, values).then(f => {
-                           drawFile(f);
+                       return updateTrace({...trace, ...values}).then(() => {
+                           redrawFile(trace);
                        });
                    }}>
         {props => <Form onSubmit={props.handleSubmit}>
@@ -39,7 +39,7 @@ export function GpxTraceDetails({gpxFileInfo}: { gpxFileInfo: GpxFileInfo }) {
             &nbsp;
             {props.values.link && <a href={props.values.link}>Link</a>}
             &nbsp;
-            <a href="#" onClick={() => downloadXml(gpxFileInfo.fileName, gpxFileInfo.doc)}>GPX</a>
+            <a href="#" onClick={() => downloadXml(trace)}>GPX</a>
         </Form>}
     </Formik>;
 }

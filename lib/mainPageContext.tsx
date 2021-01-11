@@ -1,15 +1,16 @@
 import {Observable} from 'rxjs';
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import React from 'react';
 import {LatLngBounds, PanOptions} from 'leaflet';
+import {TraceData} from 'lib/api/MongoDao';
+import {TraceDataWithXml} from 'lib/io/getTraces';
 
 export type DisplayMode = 'def' | 'xmas' | 'xmas2'
 
-export interface DroppedMapsContextType {
-    newGpxFilesToDraw$: Observable<GpxFileInfo>;
-    drawFile: (file: GpxFileInfo) => void;
-    selectFile: (file: GpxFileInfo) => void;
-    selectedFileName: string;
+export interface MainPageContextType {
+    otherMapsToDraw: TraceDataWithXml[];
+    redrawFile: (file: TraceDataWithXml) => void;
+    selectFile: (file: TraceData) => void;
+    selectedFileId: string;
     fileDirectory: string;
     displayMode: DisplayMode;
     flyToCommand$: Observable<FlyToCommand>;
@@ -18,4 +19,4 @@ export interface DroppedMapsContextType {
 }
 
 export type FlyToCommand = { bounds?: LatLngBounds, options?: PanOptions };
-export const MainPageContext = React.createContext<DroppedMapsContextType>(undefined);
+export const MainPageContext = React.createContext<MainPageContextType>(undefined);

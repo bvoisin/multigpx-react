@@ -3,16 +3,16 @@ import {createLeafletGpx} from 'lib/3rdParty/leafletgpx';
 import {Path} from 'leaflet';
 import {getIndexedColor} from 'lib/colors';
 import {MainPageContext} from 'lib/mainPageContext';
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import React, {useContext, useEffect, useState} from 'react';
+import {TraceDataWithXml} from 'lib/io/getTraces';
 
 
 export interface GpxTraceProps {
-    gpxFileInfo: GpxFileInfo;
+    trace: TraceDataWithXml;
     flashPeriodFactor?: number
 }
 
-export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceProps) {
+export default function GpxTrace({trace, flashPeriodFactor = 1}: GpxTraceProps) {
     const leafletContext = useLeafletContext()
     const mainPageContext = useContext(MainPageContext)
     const [lgpx, setLgpx] = useState(null);
@@ -36,7 +36,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             }
         };
 
-        const loadedLgpx = createLeafletGpx(gpxFileInfo.doc, gpxOptions)
+        const loadedLgpx = createLeafletGpx(trace.xml, gpxOptions)
         loadedLgpx['on']('loaded', function (e) {
             const gpx = e.target;
             mainPageContext.flyToRequest(e.target.getBounds(), {}, true)
@@ -48,12 +48,12 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             }
 
             gpx.on('click', () => {
-                mainPageContext.selectFile(gpxFileInfo);
+                mainPageContext.selectFile(trace);
             })
             gpx.bindTooltip(() => {
                 // const link = gpxFileInfo.link;
-                let author = gpxFileInfo.athleteName;
-                return `<div><b>${gpxFileInfo.traceName}</b>` +
+                let author = trace.athleteName;
+                return `<div><b>${trace.traceName}</b>` +
                     (author ? `<br/><b><i>${author}</i></b>` : '') +
                     // (link ? `<br/><a href=${link}>Link</a>` : '') +
                     '</div>';
@@ -64,7 +64,7 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
             leafletContext.map.removeLayer(loadedLgpx);
             setLgpx(null);
         };
-    }, [gpxFileInfo.fileName, gpxFileInfo.athleteName, gpxFileInfo.traceName]);
+    }, [trace.athleteName, trace.traceName]);
 
     // flashing (XMax)
     useEffect(() => {
@@ -115,8 +115,8 @@ export default function GpxTrace({gpxFileInfo, flashPeriodFactor = 1}: GpxTraceP
                     traceEl.classList.remove(className)
                 }
             }
-            setClass('notTheSelectedTrace', mainPageContext.selectedFileName && mainPageContext.selectedFileName !== gpxFileInfo.fileName)
-            setClass('selectedTrace', mainPageContext.selectedFileName === gpxFileInfo.fileName)
+            setClass('notTheSelectedTrace', mainPageContext.selectedFileId && mainPageContext.selectedFileId !== trace._id)
+            setClass('selectedTrace', mainPageContext.selectedFileId === trace._id)
         }
 
     });

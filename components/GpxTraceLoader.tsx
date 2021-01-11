@@ -1,37 +1,34 @@
 import {useLeafletContext} from '@react-leaflet/core';
 import {Map as LeafletMap} from 'leaflet';
-import {GpxFileInfo} from 'lib/gpx/gpxFileInfo';
 import React, {useEffect, useState} from 'react';
-import {GpxFileRefs} from 'pages/api/getGpxFileList';
-import {parseToGpxFileInfo2} from 'lib/gpx/parseToGpxFileInfo';
+import {TraceData} from 'lib/api/MongoDao';
+import {getTraces} from 'lib/io/getTraces';
 
 
 export interface GpxTraceLoaderProps {
     directory: string;
-    addTraceToMapCb: (gpxTrace: GpxFileInfo) => void;
-    removeTracesFromMapCb: (gpxTraces: GpxFileInfo[]) => void;
+    addTraceToMapCb: (gpxTrace: TraceData) => void;
+    removeTracesFromMapCb: (gpxTraceIds: string[]) => void;
 }
 
 export default function GpxTraceLoader({directory, addTraceToMapCb, removeTracesFromMapCb}: GpxTraceLoaderProps) {
     const leafletContext = useLeafletContext();
-    const [loadedFiles, setLoadedFiles] = useState([] as GpxFileInfo[]);
+    const [loadedFileIds, setLoadedFileIds] = useState([] as string[]);
 
     useEffect(() => {
-        async function addGpxsToMap(map: LeafletMap, gpxFileList: GpxFileRefs): Promise<GpxFileInfo[]> {
-            const promises = gpxFileList.map((gpxFileRef) => {
-                return parseToGpxFileInfo2(gpxFileRef, directory).then(fileInfo => {
-                    addTraceToMapCb(fileInfo);
-                    setLoadedFiles((alreadyLoadedFiles) => ([...alreadyLoadedFiles, fileInfo]))
-                    return fileInfo;
-                });
+        async function addTracesToMap(map: LeafletMap, traces: TraceData[]): Promise<TraceData[]> {
+            console.log('Going to add traces to Map', traces);
+            const promises = traces.map((trace) => {
+                addTraceToMapCb(trace);
+                setLoadedFileIds((alreadyLoadedFileIds) => ([...alreadyLoadedFileIds, trace._id]))
+                return trace;
             });
             return Promise.all(promises);
         }
 
-        fetch(`api/getGpxFileList?directory=${directory}`)
-            .then(res => res.json())
-            .then(gpxFileRefs => addGpxsToMap(leafletContext.map, gpxFileRefs as GpxFileRefs))
-        return () => removeTracesFromMapCb(loadedFiles);
+        getTraces(directory)
+            .then(traces => addTracesToMap(leafletContext.map, traces as TraceData[]))
+        return () => removeTracesFromMapCb(loadedFileIds);
     }, [directory]);
 
     return null;
