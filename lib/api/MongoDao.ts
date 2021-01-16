@@ -13,8 +13,8 @@ export interface TraceMetaData {
 
 export interface TraceData extends TraceMetaData {
     _id: string;
-    tempGpxUrl?: string;
-    tempGpxUrlExpiry?: Date;
+    tempSmallGpxUrl?: string;
+    tempSmallGpxUrlExpiry?: Date;
 }
 
 let cachedClient: MongoClient = null;
@@ -57,8 +57,9 @@ export class MongoDao {
 
     async updateTraceData(newTraceData: TraceData): Promise<TraceData> {
         const collection = this.getCollection();
-        const result = await collection.replaceOne({_id: new ObjectId(newTraceData._id)}, newTraceData);
-        checkEquals(1, result.modifiedCount, 'while saving ' + newTraceData._id);
+        const id = newTraceData._id;
+        const result = await collection.replaceOne({_id: new ObjectId(id)}, {...newTraceData, _id: new ObjectId(id)});
+        checkEquals(1, result.modifiedCount, 'while saving ' + id);
         return newTraceData;
     }
 
@@ -72,8 +73,11 @@ export class MongoDao {
 export async function withDao<T>(fn: (dao: MongoDao) => Promise<T>): Promise<T> {
     const dao = await new MongoDao().init();
     try {
-        return await fn(dao);
+        const ret = await fn(dao);
+        console.log('Mongo ret', ret);
+        return ret;
     } finally {
+        console.log('Closing Mongo client');
         await dao.close();
     }
 }

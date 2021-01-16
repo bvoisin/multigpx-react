@@ -1,5 +1,4 @@
 import {TraceData} from 'lib/api/MongoDao';
-import {Trace} from 'aws-sdk/clients/xray';
 
 export interface TraceDataWithXml extends TraceData {
     xml: Document;
@@ -7,7 +6,7 @@ export interface TraceDataWithXml extends TraceData {
 
 async function addXml(traceData: TraceData): Promise<TraceDataWithXml> {
     try {
-        const response = await fetch(traceData.tempGpxUrl);
+        const response = await fetch(traceData.tempSmallGpxUrl);
         if (response.status !== 200) {
             console.warn('Error ' + response.status + ' ' + response.statusText + ' while loading trace ' + traceData._id);
             return null;

@@ -13,6 +13,6 @@ export function getFilePrefix(directory: string) {
     return process.env.DIR_PREFIX + dir2 + '/';
 }
 
-export function getS3FileName(traceData: TraceData) {
-    return getFilePrefix(traceData.directory) + traceData._id + '_' + traceData.origFileName;
+export function getS3FileName(traceData: TraceData, suffix: string) {
+    return getFilePrefix(traceData.directory) + traceData._id + '_' + suffix + '_' + traceData.origFileName;
 }

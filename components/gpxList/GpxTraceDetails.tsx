@@ -1,6 +1,6 @@
 import {Form, Formik} from 'formik';
 import {TextField} from '@material-ui/core';
-import {downloadXml} from 'lib/io/downloadInMemoryFile';
+import {downloadXml, downloadXmlFull} from 'lib/io/download';
 import React, {useContext} from 'react';
 import {MainPageContext} from 'lib/mainPageContext';
 import {updateTrace} from 'lib/io/updateTrace';
@@ -39,7 +39,9 @@ export function GpxTraceDetails({trace}: { trace: TraceDataWithXml }) {
             &nbsp;
             {props.values.link && <a href={props.values.link}>Link</a>}
             &nbsp;
-            <a href="#" onClick={() => downloadXml(trace)}>GPX</a>
+            <a href="#" onClick={() => downloadXml(trace)}>GPX Light</a>
+            &nbsp;
+            <a href="#" onClick={() => downloadXmlFull(trace)}>GPX Full</a>
         </Form>}
     </Formik>;
 }
