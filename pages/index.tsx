@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import Link from 'next/link'
-import {DirectoryInfo} from 'pages/api/getDirectoryList';
+import {DirectoryInfo} from 'lib/api/MongoDao';
+import _ from 'lodash';
 
 export default function IndexPage() {
     const [dirList, setDirList] = useState<DirectoryInfo[]>([]);
@@ -13,7 +14,7 @@ export default function IndexPage() {
     return <div>
         MultiGPX Maps for the Paris Sport Club
         <ul>
-            {dirList.map(dir => <li key={dir.name}><Link href={encodeURI(dir.name)}><a>{dir.name}</a></Link></li>)}
+            {_.sortBy(dirList, d => d.name).map(dir => <li key={dir.name}><Link href={encodeURI(dir.name)}><a>{dir.name} <i>({dir.nbTraces})</i></a></Link></li>)}
         </ul>
     </div>;
 }

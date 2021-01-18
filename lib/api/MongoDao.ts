@@ -17,6 +17,11 @@ export interface TraceData extends TraceMetaData {
     tempSmallGpxUrlExpiry?: Date;
 }
 
+export interface DirectoryInfo {
+    name: string;
+    nbTraces: number;
+}
+
 let cachedClient: MongoClient = null;
 
 export class MongoDao {
@@ -37,6 +42,21 @@ export class MongoDao {
     async fetchTraceDatas(directory: string): Promise<TraceData[]> {
         const collection = this.getCollection();
         return await collection.find({directory: directory}).toArray();
+    }
+
+    async getDirectoryInfos(): Promise<DirectoryInfo[]> {
+        const collection = this.getCollection();
+        const lst = await collection.aggregate<{ _id: string, nbTraces: number }>([{
+            $match: {
+                directory: {$not: {$regex: '^_.*'}}
+            }
+        }, {
+            $group: {
+                _id: '$directory',
+                nbTraces: {$sum: 1}
+            }
+        }]).toArray();
+        return lst.map(a => ({name: a._id, nbTraces: a.nbTraces}));
     }
 
     async fetchTraceData(id: string): Promise<TraceData> {
