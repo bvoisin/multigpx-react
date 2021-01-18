@@ -4,6 +4,7 @@ import {LatLngExpression} from 'leaflet';
 
 const center: LatLngExpression = [48.864716, 2.4]
 
+// noinspection JSUnusedGlobalSymbols
 export default function TestMap() {
     return <MapContainer center={center} zoom={13} scrollWheelZoom={false} style={{height: '100vh', width: '100vw'}}>
         <LayersControl position="topright">

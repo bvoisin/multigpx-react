@@ -4,7 +4,6 @@ import {MainPageContext} from 'lib/mainPageContext';
 import clsx from 'clsx';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {GpxTraceDetails} from 'components/gpxList/GpxTraceDetails';
-import {TraceData} from 'lib/api/MongoDao';
 import {TraceDataWithXml} from 'lib/io/getTraces';
 
 export interface GpxListControlProps {

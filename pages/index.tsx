@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {DirectoryInfo} from 'lib/api/MongoDao';
 import _ from 'lodash';
 
+// noinspection JSUnusedGlobalSymbols
 export default function IndexPage() {
     const [dirList, setDirList] = useState<DirectoryInfo[]>([]);
 

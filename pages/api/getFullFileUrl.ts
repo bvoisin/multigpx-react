@@ -23,5 +23,5 @@ async function handler(request: NextApiRequest & { query: GetFullFileUrlParams }
         res.status(200).json(url);
     });
 }
-
+// noinspection JSUnusedGlobalSymbols
 export default handler

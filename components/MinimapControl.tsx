@@ -40,6 +40,7 @@ function MinimapBounds({parentMap, zoom}: { parentMap: LeafletMap, zoom: number 
     return <Rectangle bounds={bounds} pathOptions={BOUNDS_STYLE}/>
 }
 
+// noinspection JSUnusedGlobalSymbols
 export function MinimapControl({position, zoom}) {
     const parentMap = useMap()
     const mapZoom = zoom || 0

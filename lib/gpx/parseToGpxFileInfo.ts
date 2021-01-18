@@ -1,14 +1,14 @@
-import {TraceData, TraceMetaData} from 'lib/api/MongoDao';
+import {TraceMetaData} from '../api/MongoDao';
 
-async function getGpxXmlText(gpxFileUrl: TraceData | File): Promise<{ doc: Document, fileName: string }> {
-    if (gpxFileUrl instanceof File) {
-        const text = await gpxFileUrl.text();
-        return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.name};
-    } else {
-        const text = await (await fetch(gpxFileUrl.tempSmallGpxUrl)).text();
-        return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.origFileName};
-    }
-}
+// async function getGpxXmlText(gpxFileUrl: TraceData | File): Promise<{ doc: Document, fileName: string }> {
+//     if (gpxFileUrl instanceof File) {
+//         const text = await gpxFileUrl.text();
+//         return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.name};
+//     } else {
+//         const text = await (await fetch(gpxFileUrl.tempSmallGpxUrl)).text();
+//         return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.origFileName};
+//     }
+// }
 
 const athleteNameXPath = '/g:gpx/g:metadata/g:author/g:name';
 const traceNameXPath = '/g:gpx/g:trk/g:name';

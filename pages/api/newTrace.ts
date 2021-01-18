@@ -45,5 +45,5 @@ async function handler(req: NextApiRequest & { query: TraceMetaData }, res: Next
         res.status(200).json({fullFilePresignedPost, smallFilePresignedPost, _id: id});
     })
 }
-
+// noinspection JSUnusedGlobalSymbols
 export default handler

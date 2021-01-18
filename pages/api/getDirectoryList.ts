@@ -8,6 +8,7 @@ async function listDirectories$(): Promise<DirectoryInfo[]> {
     });
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default async function handler(request: NextApiRequest, res: NextApiResponse<DirectoryInfo[]>) {
     // res.status(200).json(['a', 'b']);
     const dirList = await listDirectories$()

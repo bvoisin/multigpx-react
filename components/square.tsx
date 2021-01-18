@@ -2,6 +2,7 @@ import L, {LatLngExpression} from 'leaflet';
 import {useLeafletContext} from '@react-leaflet/core';
 import {useEffect} from 'react';
 
+// noinspection JSUnusedGlobalSymbols
 export function Square(props: { center: LatLngExpression, size: number }) {
     const context = useLeafletContext()
 

@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import Link from 'next/link'
-import {TraceMeta} from 'pages/api/getTraces';
+import {DirectoryInfo} from 'lib/api/MongoDao';
 
+// noinspection JSUnusedGlobalSymbols
 export default function IndexPage() {
-    const [dirList, setDirList] = useState<TraceMeta[]>([]);
+    const [dirList, setDirList] = useState<DirectoryInfo[]>([]);
 
     useEffect(() => {
         fetch(`api/getToto`)

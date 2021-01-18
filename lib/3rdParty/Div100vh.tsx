@@ -17,7 +17,7 @@ export default function Div100vh({
     if (!warned && style.height) {
         warned = true
         console.warn(
-            '<ReactDiv100vh /> overrides the height property of the style prop'
+            '<' + 'Div100vh> overrides the height property of the style prop'
         )
     }
     const styleWithRealHeight = {

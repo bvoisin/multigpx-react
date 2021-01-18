@@ -331,9 +331,11 @@ const L_GPX = L.FeatureGroup.extend({
     _merge_objs: function (a, b) {
         const _ = {};
         for (const attr in a) {
+            // noinspection JSUnfilteredForInLoop
             _[attr] = a[attr];
         }
         for (const attr in b) {
+            // noinspection JSUnfilteredForInLoop
             _[attr] = b[attr];
         }
         return _;
@@ -712,8 +714,7 @@ const L_GPX = L.FeatureGroup.extend({
             Math.sin(dLon / 2) *
             Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(r), Math.sqrt(1 - r));
-        const d = R * c;
-        return d;
+        return R * c;
     },
 
     _dist3d: function (a, b) {

@@ -13,6 +13,7 @@ export const tileServers: TileServer[] = [
     bwTS
 ];
 
+// noinspection JSUnusedGlobalSymbols
 export function getTileServer(code: string) {
     return tileServers.find(ts => ts.code === code) || defTS;
 }

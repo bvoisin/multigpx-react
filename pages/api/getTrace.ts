@@ -16,4 +16,5 @@ async function handler(request: NextApiRequest & { query: GetTraceParams }, res:
     });
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default handler
