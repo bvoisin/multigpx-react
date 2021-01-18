@@ -16,6 +16,10 @@ const linkXPath = '/g:gpx/g:metadata/g:link/@href';
 const GPX_NS = 'http://www.topografix.com/GPX/1/1';
 const GPX_NS_RESOLVER = () => GPX_NS;
 
+export function fixTraceName(readTraceName: string, origFileName: string) {
+    return readTraceName && readTraceName != 'Move' ? readTraceName : origFileName.replace('.gpx', '');
+}
+
 export function parseToGpxFileInfo(doc: Document, directory: string, origFileName: string) {
     let getStringValue = function (expression: string, nameToWarnIfEmpty?: string) {
         let v = doc.evaluate(expression, doc, GPX_NS_RESOLVER, XPathResult.STRING_TYPE, null).stringValue;
@@ -25,7 +29,8 @@ export function parseToGpxFileInfo(doc: Document, directory: string, origFileNam
         return v;
     };
     const athleteName = getStringValue(athleteNameXPath + '/text()', 'athleteName');
-    const traceName = getStringValue(traceNameXPath + '/text()', 'traceName');
+    const readTraceName = getStringValue(traceNameXPath + '/text()', 'traceName');
+    const traceName = fixTraceName(readTraceName, origFileName)
     const link = getStringValue(linkXPath);
 
 

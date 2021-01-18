@@ -1,4 +1,5 @@
 import {TraceData} from 'lib/api/MongoDao';
+import {fixTraceName} from 'lib/gpx/parseToGpxFileInfo';
 
 export interface TraceDataWithXml extends TraceData {
     xml: Document;
@@ -13,7 +14,8 @@ async function addXml(traceData: TraceData): Promise<TraceDataWithXml> {
         }
         const text = await response.text();
         const xml = new DOMParser().parseFromString(text, 'text/xml');
-        return {...traceData, xml};
+        const traceName = fixTraceName(traceData.traceName, traceData.origFileName)
+        return {...traceData, xml, traceName};
     } catch (e) {
         console.warn('Error while loading trace ' + traceData._id, e);
         return null;
