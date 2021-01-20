@@ -1,4 +1,6 @@
 import {TraceMetaData} from '../api/MongoDao';
+import * as sax from 'sax';
+import {checkEquals} from 'lib/checks';
 
 // async function getGpxXmlText(gpxFileUrl: TraceData | File): Promise<{ doc: Document, fileName: string }> {
 //     if (gpxFileUrl instanceof File) {
@@ -10,37 +12,66 @@ import {TraceMetaData} from '../api/MongoDao';
 //     }
 // }
 
-const athleteNameXPath = '/g:gpx/g:metadata/g:author/g:name';
-const traceNameXPath = '/g:gpx/g:trk/g:name';
-const linkXPath = '/g:gpx/g:metadata/g:link/@href';
-const GPX_NS = 'http://www.topografix.com/GPX/1/1';
-const GPX_NS_RESOLVER = () => GPX_NS;
-
 export function fixTraceName(readTraceName: string, origFileName: string) {
     return readTraceName && readTraceName != 'Move' ? readTraceName : origFileName.replace('.gpx', '');
 }
 
-function calculateDistance(doc: Document) {
-    const iter = doc.evaluate('/g:trk/tg:rkseg/g:trkpt', doc, GPX_NS_RESOLVER, XPathResult.ORDERED_NODE_ITERATOR_TYPE)
-}
+const traceNameStack = ['gpx', 'metadata', 'name']
+const athleteNameStack = ['gpx', 'metadata', 'author', 'name']
+const linkStack = ['gpx', 'metadata', 'link']
 
-export function parseToGpxFileInfo(doc: Document, directory: string, origFileName: string) {
-    function getStringValue(expression: string, nameToWarnIfEmpty?: string) {
-        let v = doc.evaluate(expression, doc, GPX_NS_RESOLVER, XPathResult.STRING_TYPE, null).stringValue;
-        if (!v && nameToWarnIfEmpty) {
-            console.log(`No value for ${nameToWarnIfEmpty} on ${origFileName}`)
+export function parseToGpxFileInfo(fileContent: string, directory: string, origFileName: string) {
+    const parser = sax.parser(true, {trim: true});
+
+    let readTraceName: string = undefined
+    let athleteName: string = undefined
+    let link: string = undefined
+
+    const currentStack = [];
+
+    function isCurrentStack(stack: string[]) {
+        if (stack.length !== currentStack.length) {
+            return false;
         }
-        return v;
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (currentStack[i] !== stack[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    const athleteName = getStringValue(athleteNameXPath + '/text()', 'athleteName');
-    const readTraceName = getStringValue(traceNameXPath + '/text()', 'traceName');
-    const traceName = fixTraceName(readTraceName, origFileName)
-    const link = getStringValue(linkXPath);
+    let currentText: string;
+    parser.onopentag = ({name, attributes}) => {
+        currentStack.push(name)
+        currentText = '';
+        switch (name) {
+            case 'link':
+                if (isCurrentStack(linkStack)) {
+                    link = attributes['href'] as string;
+                }
+        }
+    }
+    parser.onclosetag = name => {
+        switch (name) {
+            case 'name':
+                if (isCurrentStack(traceNameStack)) {
+                    readTraceName = currentText
+                } else if (isCurrentStack(athleteNameStack)) {
+                    athleteName = currentText
+                }
+                break
+        }
+        const v = currentStack.pop()
+        checkEquals(name, v);
+    }
+    parser.ontext = text => {
+        currentText += text;
+    }
 
-    const distance = calculateDistance(doc);
+    parser.write(fileContent);
 
-    return {origFileName, athleteName, traceName, link, directory} as TraceMetaData;
+    return {origFileName, athleteName, traceName:fixTraceName(readTraceName, origFileName), link, directory} as TraceMetaData;
 }
 
 // export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {

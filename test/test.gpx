@@ -1,0 +1,98 @@
+<gpx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" creator="StravaGPX" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
+    <metadata>
+        <name>Small trace</name>
+        <author>
+            <name>Benoit Voisin</name>
+        </author>
+        <link href="https://test/url"/>
+    </metadata>
+    <trk>
+        <name>Trk Name</name>
+        <desc>de Nico</desc>
+        <link href="https://test/url/2"/>
+        <type>Vélo</type>
+        <trkseg>
+            <trkpt lat="48.87538000000001" lon="2.3764100000000004">
+                <ele>74.71000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.87590000041492" lon="2.376634997745986">
+                <ele>78.01</ele>
+            </trkpt>
+            <trkpt lat="48.87642" lon="2.37686">
+                <ele>82.03</ele>
+            </trkpt>
+            <trkpt lat="48.87644" lon="2.3780300000000003">
+                <ele>84.06</ele>
+            </trkpt>
+            <trkpt lat="48.87637000314489" lon="2.378880000931869">
+                <ele>85.72</ele>
+            </trkpt>
+            <trkpt lat="48.8763" lon="2.3797300000000003">
+                <ele>86.82000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.876430000000006" lon="2.37962">
+                <ele>86.95000000000002</ele>
+            </trkpt>
+            <trkpt lat="48.876560000000005" lon="2.37937">
+                <ele>86.68</ele>
+            </trkpt>
+            <trkpt lat="48.876900000000006" lon="2.3788500000000004">
+                <ele>85.54</ele>
+            </trkpt>
+            <trkpt lat="48.877300000000005" lon="2.3785000000000003">
+                <ele>85.15</ele>
+            </trkpt>
+            <trkpt lat="48.877720000000004" lon="2.37832">
+                <ele>84.14</ele>
+            </trkpt>
+            <trkpt lat="48.87787" lon="2.37828">
+                <ele>83.61</ele>
+            </trkpt>
+            <trkpt lat="48.87814" lon="2.37825">
+                <ele>83.21000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.87839" lon="2.37828">
+                <ele>82.57000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.87885000000001" lon="2.3784400000000003">
+                <ele>82.19000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.878980000000006" lon="2.3785600000000002">
+                <ele>81.59</ele>
+            </trkpt>
+            <trkpt lat="48.87903000000001" lon="2.3785700000000003">
+                <ele>81.59</ele>
+            </trkpt>
+            <trkpt lat="48.879630000000006" lon="2.3789800000000003">
+                <ele>79.94000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.8804" lon="2.37961">
+                <ele>77.28</ele>
+            </trkpt>
+            <trkpt lat="48.880750000000006" lon="2.37995">
+                <ele>75.56</ele>
+            </trkpt>
+            <trkpt lat="48.88121500132355" lon="2.3805049948303543">
+                <ele>73.84</ele>
+            </trkpt>
+            <trkpt lat="48.88168" lon="2.38106">
+                <ele>71.73</ele>
+            </trkpt>
+            <trkpt lat="48.88212" lon="2.38171">
+                <ele>70.58</ele>
+            </trkpt>
+            <trkpt lat="48.88224" lon="2.38194">
+                <ele>70.29</ele>
+            </trkpt>
+            <trkpt lat="48.882470000000005" lon="2.3826300000000002">
+                <ele>70.42000000000002</ele>
+            </trkpt>
+            <trkpt lat="48.88282" lon="2.38246">
+                <ele>69.21000000000001</ele>
+            </trkpt>
+            <trkpt lat="48.88328000310533" lon="2.383063322179339">
+                <ele>67.74000000000001</ele>
+            </trkpt>
+        </trkseg>
+    </trk>
+</gpx>
