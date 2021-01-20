@@ -20,19 +20,25 @@ export function fixTraceName(readTraceName: string, origFileName: string) {
     return readTraceName && readTraceName != 'Move' ? readTraceName : origFileName.replace('.gpx', '');
 }
 
+function calculateDistance(doc: Document) {
+    const iter = doc.evaluate('/g:trk/tg:rkseg/g:trkpt', doc, GPX_NS_RESOLVER, XPathResult.ORDERED_NODE_ITERATOR_TYPE)
+}
+
 export function parseToGpxFileInfo(doc: Document, directory: string, origFileName: string) {
-    let getStringValue = function (expression: string, nameToWarnIfEmpty?: string) {
+    function getStringValue(expression: string, nameToWarnIfEmpty?: string) {
         let v = doc.evaluate(expression, doc, GPX_NS_RESOLVER, XPathResult.STRING_TYPE, null).stringValue;
         if (!v && nameToWarnIfEmpty) {
             console.log(`No value for ${nameToWarnIfEmpty} on ${origFileName}`)
         }
         return v;
-    };
+    }
+
     const athleteName = getStringValue(athleteNameXPath + '/text()', 'athleteName');
     const readTraceName = getStringValue(traceNameXPath + '/text()', 'traceName');
     const traceName = fixTraceName(readTraceName, origFileName)
     const link = getStringValue(linkXPath);
 
+    const distance = calculateDistance(doc);
 
     return {origFileName, athleteName, traceName, link, directory} as TraceMetaData;
 }

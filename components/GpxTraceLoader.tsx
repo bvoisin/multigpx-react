@@ -3,6 +3,7 @@ import {Map as LeafletMap} from 'leaflet';
 import React, {useEffect, useState} from 'react';
 import {TraceData} from 'lib/api/MongoDao';
 import {getTraces} from 'lib/io/getTraces';
+import _ from 'lodash';
 
 
 export interface GpxTraceLoaderProps {
