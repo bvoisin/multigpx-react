@@ -21,6 +21,21 @@ const traceNameStack2 = ['gpx', 'trk', 'name']
 const athleteNameStack = ['gpx', 'metadata', 'author', 'name']
 const linkStack = ['gpx', 'metadata', 'link']
 
+/**
+ *
+ * @param data
+ */
+export function omitNullEntries<T extends object>(data: T): Partial<T> {
+    const ret = {}
+    Object.keys(data).forEach(key => {
+        const v = data[key];
+        if (v != null) {
+            ret[key] = v
+        }
+    });
+    return ret;
+}
+
 export function parseToGpxFileInfo(fileContent: string, directory: string, origFilename: string) {
     const parser = sax.parser(true, {trim: true});
 
@@ -74,7 +89,8 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
 
     parser.write(fileContent);
 
-    return {origFilename, athleteName, traceName:fixTraceName(readTraceName, origFilename), link, directory} as TraceMetaData;
+    const data = {origFilename, athleteName, traceName: fixTraceName(readTraceName, origFilename), link, directory} as TraceMetaData;
+    return omitNullEntries(data);
 }
 
 // export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {

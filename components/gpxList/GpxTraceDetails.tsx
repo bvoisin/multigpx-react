@@ -4,15 +4,15 @@ import {downloadXml, downloadXmlFull} from 'lib/io/download';
 import React, {useContext} from 'react';
 import {MainPageContext} from 'lib/mainPageContext';
 import {updateTrace} from 'lib/io/updateTrace';
-import {TraceDataWithXml} from 'lib/io/getTraces';
+import {getTrace, TraceDataWithXml} from 'lib/io/getTraces';
 
 export function GpxTraceDetails({trace}: { trace: TraceDataWithXml }) {
     const {redrawFile} = useContext(MainPageContext)
     return <Formik initialValues={{...trace}}
                    onSubmit={values => {
-                       return updateTrace({...trace, ...values}).then(() => {
-                           redrawFile(trace);
-                       });
+                       return updateTrace({...trace, ...values})
+                           .then(() => getTrace(trace._id))
+                           .then((updatedTrace) => redrawFile(updatedTrace))
                    }}>
         {props => <Form onSubmit={props.handleSubmit}>
             <TextField
