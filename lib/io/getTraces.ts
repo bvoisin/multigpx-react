@@ -14,7 +14,7 @@ async function addXml(traceData: TraceData): Promise<TraceDataWithXml> {
         }
         const text = await response.text();
         const xml = new DOMParser().parseFromString(text, 'text/xml');
-        const traceName = fixTraceName(traceData.traceName, traceData.origFileName)
+        const traceName = fixTraceName(traceData.traceName, traceData.origFilename)
         return {...traceData, xml, traceName};
     } catch (e) {
         console.warn('Error while loading trace ' + traceData._id, e);

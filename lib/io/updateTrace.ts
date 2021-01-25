@@ -7,7 +7,7 @@ export async function updateTrace(trace: TraceData & { _id: string }): Promise<s
     const traceAsQueryParams = obj2QueryParams(trace);
 
     const response: string = await (await fetch(`/api/updateTraceMetaData?${traceAsQueryParams}`)).text();
-    console.log(`update trace ${trace.traceName} => ${response}`)
+    console.log(`update trace ${trace.traceName} =>`)
 
     return response;
 }

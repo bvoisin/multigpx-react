@@ -1,5 +1,3 @@
-import {TraceData} from 'lib/api/MongoDao';
-
 export function getFilePrefix(directory: string) {
     if (directory && typeof directory !== 'string') {
         throw new Error(`Bad parameter '${directory}'`)
@@ -13,6 +11,8 @@ export function getFilePrefix(directory: string) {
     return process.env.DIR_PREFIX + dir2 + '/';
 }
 
-export function getS3FileName(traceData: TraceData, suffix: string) {
-    return getFilePrefix(traceData.directory) + traceData._id + '_' + suffix + '_' + traceData.origFileName;
+export type PossibleFileSuffix = 'full' | 'small'
+
+export function getS3FileName(traceData: {_id:string, origFilename:string, directory:string}, suffix: PossibleFileSuffix) {
+    return getFilePrefix(traceData.directory) + traceData._id + '_' + suffix + '_' + traceData.origFilename;
 }

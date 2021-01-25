@@ -19,21 +19,21 @@ export function GpxTraceDetails({trace}: { trace: TraceDataWithXml }) {
                 name="traceName"
                 label="Trace Name"
                 fullWidth
-                value={props.values.traceName}
+                value={props.values.traceName || ''}
                 onChange={props.handleChange}/>
             <TextField
                 name="athleteName"
                 label="Athlete Name"
                 type="text"
                 fullWidth
-                value={props.values.athleteName}
+                value={props.values.athleteName || ''}
                 onChange={props.handleChange}/>
             <TextField
                 name="link"
                 type="text"
                 label="Link (Strava or other)"
                 fullWidth
-                value={props.values.link}
+                value={props.values.link || ''}
                 onChange={props.handleChange}/>
             <button type="submit">Save</button>
             &nbsp;

@@ -1,7 +1,6 @@
 import {reduceGpx} from 'lib/gpx/reduceGpx';
-import {parseToGpxFileInfo} from 'lib/gpx/parseToGpxFileInfo';
 import * as _ from 'lodash';
-import {NewTraceResponse} from 'pages/api/newTrace';
+import {NewTraceQuery, NewTraceResponse} from 'pages/api/newTrace';
 import {S3} from 'aws-sdk';
 
 
@@ -31,15 +30,13 @@ let uploadToS3 = async function (presignedPost: S3.PresignedPost, reducedDocText
 
 export async function uploadTrace(file: File, directory: string): Promise<string> {
     const origFilename = encodeURIComponent(file.name);
+    const req: NewTraceQuery = {directory, origFilename};
+    const response: NewTraceResponse = await (await fetch(`/api/newTrace?${obj2QueryParams(req)}`)).json();
+    const {_id, smallFilePresignedPost, fullFilePresignedPost} = response;
+    console.log(`uploading files ${origFilename}`)
+
     const reducedDoc = await reduceGpx(file);
     const reducedDocText = new XMLSerializer().serializeToString(reducedDoc)
-
-    const trace = parseToGpxFileInfo(reducedDoc, directory, origFilename);
-
-    const traceAsQueryParams = obj2QueryParams(trace);
-    const response: NewTraceResponse = await (await fetch(`/api/newTrace?${traceAsQueryParams}`)).json();
-    const {_id, smallFilePresignedPost, fullFilePresignedPost} = response;
-    console.log(`uploading file ${origFilename}`)
 
     await uploadToS3(smallFilePresignedPost, reducedDocText, _id, 'small');
     await uploadToS3(fullFilePresignedPost, file, _id, 'full');

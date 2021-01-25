@@ -8,19 +8,20 @@ import {checkEquals} from 'lib/checks';
 //         return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.name};
 //     } else {
 //         const text = await (await fetch(gpxFileUrl.tempSmallGpxUrl)).text();
-//         return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.origFileName};
+//         return {doc: new DOMParser().parseFromString(text, 'text/xml'), fileName: gpxFileUrl.origFilename};
 //     }
 // }
 
-export function fixTraceName(readTraceName: string, origFileName: string) {
-    return readTraceName && readTraceName != 'Move' ? readTraceName : origFileName.replace('.gpx', '');
+export function fixTraceName(readTraceName: string, origFilename: string) {
+    return readTraceName && readTraceName != 'Move' ? readTraceName : origFilename.replace('.gpx', '');
 }
 
 const traceNameStack = ['gpx', 'metadata', 'name']
+const traceNameStack2 = ['gpx', 'trk', 'name']
 const athleteNameStack = ['gpx', 'metadata', 'author', 'name']
 const linkStack = ['gpx', 'metadata', 'link']
 
-export function parseToGpxFileInfo(fileContent: string, directory: string, origFileName: string) {
+export function parseToGpxFileInfo(fileContent: string, directory: string, origFilename: string) {
     const parser = sax.parser(true, {trim: true});
 
     let readTraceName: string = undefined
@@ -57,6 +58,8 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
             case 'name':
                 if (isCurrentStack(traceNameStack)) {
                     readTraceName = currentText
+                } else if (isCurrentStack(traceNameStack2) && !readTraceName) {
+                    readTraceName = currentText
                 } else if (isCurrentStack(athleteNameStack)) {
                     athleteName = currentText
                 }
@@ -71,7 +74,7 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
 
     parser.write(fileContent);
 
-    return {origFileName, athleteName, traceName:fixTraceName(readTraceName, origFileName), link, directory} as TraceMetaData;
+    return {origFilename, athleteName, traceName:fixTraceName(readTraceName, origFilename), link, directory} as TraceMetaData;
 }
 
 // export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {

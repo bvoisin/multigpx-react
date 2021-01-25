@@ -3,16 +3,22 @@ import {checkEquals} from 'lib/checks';
 import {ObjectId} from 'bson';
 import {MongoClient} from 'mongodb';
 
-export interface TraceMetaData {
-    origFileName: string;
-    athleteName: string;
-    traceName: string;
-    link: string;
+export interface TraceDataBeforeCreation {
+    origFilename: string;
     directory: string;
 }
 
-export interface TraceData extends TraceMetaData {
+export interface TraceDataAtCreation extends TraceDataBeforeCreation{
     _id: string;
+}
+
+export interface TraceMetaData extends TraceDataAtCreation {
+    athleteName: string;
+    traceName: string;
+    link: string;
+}
+
+export interface TraceData extends TraceMetaData {
     tempSmallGpxUrl?: string;
     tempSmallGpxUrlExpiry?: Date;
 }
@@ -68,9 +74,9 @@ export class MongoDao {
         return trace;
     }
 
-    async saveNewTraceData(newTraceData: TraceMetaData): Promise<TraceData> {
-        checkEquals(undefined, newTraceData['_id']);
+    async createNewTraceData(directory: string, origFilename: string): Promise<TraceDataAtCreation> {
         const collection = this.getCollection();
+        const newTraceData: TraceDataBeforeCreation = {directory, origFilename}
         const result = await collection.insertOne(newTraceData);
         return {_id: result.insertedId, ...newTraceData};
     }
@@ -78,14 +84,20 @@ export class MongoDao {
     async updateTraceData(newTraceData: TraceData): Promise<TraceData> {
         const collection = this.getCollection();
         const id = newTraceData._id;
-        const result = await collection.replaceOne({_id: new ObjectId(id)}, {...newTraceData, _id: new ObjectId(id)});
-        checkEquals(1, result.modifiedCount, 'while saving ' + id);
+        const _id = new ObjectId(id);
+        const result = await collection.replaceOne({_id}, {...newTraceData, _id});
+        checkEquals(1, result.matchedCount, 'while saving ' + id + ' ' + result);
+        if (result.modifiedCount==0) {
+            console.log('The trace MetaData was already at this state:', newTraceData)
+        } else {
+            console.log('Updated trace MetaData to:', newTraceData)
+        }
         return newTraceData;
     }
 
     async close() {
         this.client = null;
-        // it seems that we should not close the client, but keep it opened...
+        // it seems that we should not close the client, but keep it opened (single Instance)...
         // return this.client.close();
     }
 }
@@ -93,11 +105,8 @@ export class MongoDao {
 export async function withDao<T>(fn: (dao: MongoDao) => Promise<T>): Promise<T> {
     const dao = await new MongoDao().init();
     try {
-        const ret = await fn(dao);
-        console.log('Mongo ret', ret);
-        return ret;
+        return await fn(dao);
     } finally {
-        console.log('Closing Mongo client');
         await dao.close();
     }
 }

@@ -5,6 +5,8 @@ import clsx from 'clsx';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {GpxTraceDetails} from 'components/gpxList/GpxTraceDetails';
 import {TraceDataWithXml} from 'lib/io/getTraces';
+import {reparseGpxFile} from 'lib/io/reparseGpxFile';
+import ReplayIcon from '@material-ui/icons/Replay';
 
 export interface GpxListControlProps {
     fileList: TraceDataWithXml[];
@@ -37,7 +39,8 @@ const useStyles = makeStyles((theme: Theme) =>
             '& .MuiAccordionSummary-root': {
                 'min-height': 25,
                 '& .MuiAccordionSummary-content': {
-                    margin: 0
+                    margin: 0,
+                    overflow: 'auto'
                 },
                 '& .MuiIconButton-root': {
                     padding: 0
@@ -47,6 +50,8 @@ const useStyles = makeStyles((theme: Theme) =>
         traceName: {
             fontSize: theme.typography.pxToRem(12),
             fontWeight: theme.typography.fontWeightRegular,
+            'text-overflow': 'ellipsis',
+            'overflow-x': 'hidden'
         },
         header: {
             '& button': {
@@ -104,6 +109,9 @@ export function GpxListControl({fileList}: GpxListControlProps) {
                                       }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                             <Typography className={classes.traceName}>{f.traceName}</Typography>
+                            {(window.location.href as string).startsWith('http://localhost') &&
+                            <a onClick={() => reparseGpxFile(f._id).then()}><ReplayIcon style={{fontSize: '0.8rem'}}/></a>
+                            }
                         </AccordionSummary>
                         <AccordionDetails className={classes.details}>
                             <GpxTraceDetails trace={f}/>
