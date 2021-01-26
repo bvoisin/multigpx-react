@@ -1,4 +1,3 @@
-import {TraceMetaData} from '../api/MongoDao';
 import * as sax from 'sax';
 import {checkEquals} from 'lib/checks';
 
@@ -21,6 +20,12 @@ const traceNameStack2 = ['gpx', 'trk', 'name']
 const athleteNameStack = ['gpx', 'metadata', 'author', 'name']
 const linkStack = ['gpx', 'metadata', 'link']
 
+export interface ParsedData {
+    athleteName?: string;
+    traceName?: string;
+    link?: string;
+}
+
 /**
  *
  * @param data
@@ -36,7 +41,7 @@ export function omitNullEntries<T extends object>(data: T): Partial<T> {
     return ret;
 }
 
-export function parseToGpxFileInfo(fileContent: string, directory: string, origFilename: string) {
+export function parseToGpxFileInfo(fileContent: string, directory: string, origFilename: string): ParsedData {
     const parser = sax.parser(true, {trim: true});
 
     let readTraceName: string = undefined
@@ -89,8 +94,7 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
 
     parser.write(fileContent);
 
-    const data = {origFilename, athleteName, traceName: fixTraceName(readTraceName, origFilename), link, directory} as TraceMetaData;
-    return omitNullEntries(data);
+    return omitNullEntries({athleteName, traceName: fixTraceName(readTraceName, origFilename), link})
 }
 
 // export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {

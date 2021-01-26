@@ -9,7 +9,7 @@ export function obj2QueryParams(obj: any) {
     return toPairs.map(p => p[0] + '=' + encodeURIComponent(p[1])).join('&')
 }
 
-let uploadToS3 = async function (presignedPost: S3.PresignedPost, reducedDocText: string | File, _id: string, prefix: string) {
+async function uploadToS3(presignedPost: S3.PresignedPost, reducedDocText: string | File, _id: string, prefix: string) {
     const formData = new FormData();
     Object.entries(presignedPost.fields).forEach(([key, value]) => {
         formData.append(key, value as string);
@@ -26,7 +26,7 @@ let uploadToS3 = async function (presignedPost: S3.PresignedPost, reducedDocText
     } else {
         console.error('Upload failed. ' + _id + ' ' + prefix + ' ', presignedPost);
     }
-};
+}
 
 export async function uploadTrace(file: File, directory: string): Promise<string> {
     const origFilename = encodeURIComponent(file.name);
@@ -40,5 +40,7 @@ export async function uploadTrace(file: File, directory: string): Promise<string
 
     await uploadToS3(smallFilePresignedPost, reducedDocText, _id, 'small');
     await uploadToS3(fullFilePresignedPost, file, _id, 'full');
+
+
     return _id;
 }

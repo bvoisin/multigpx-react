@@ -2,6 +2,7 @@ import MongoClientInstance from 'lib/api/MongoClientInstance';
 import {checkEquals} from 'lib/checks';
 import {ObjectId} from 'bson';
 import {MongoClient} from 'mongodb';
+import {ParsedData} from 'lib/gpx/parseToGpxFileInfo';
 
 export interface TraceDataBeforeCreation {
     origFilename: string;
@@ -12,10 +13,7 @@ export interface TraceDataAtCreation extends TraceDataBeforeCreation{
     _id: string;
 }
 
-export interface TraceMetaData extends TraceDataAtCreation {
-    athleteName: string;
-    traceName: string;
-    link: string;
+export interface TraceMetaData extends TraceDataAtCreation, ParsedData {
 }
 
 export interface TraceData extends TraceMetaData {
