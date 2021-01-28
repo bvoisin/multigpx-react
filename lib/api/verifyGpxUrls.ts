@@ -11,17 +11,18 @@ export function getPresignedUrl(t: TraceData, suffix: 'full' | 'small') {
 
     loginToAws();
     const s3 = new aws.S3();
+
+    console.log('Fetching new tempGpxUrl for ' + fileName)
     return s3.getSignedUrlPromise('getObject', {Bucket: process.env.MY_AWS_BUCKET_NAME, Key: fileName, Expires: signedUrlExpires});
 }
 
 export async function verifyGpxUrls(t: TraceData) {
     const now = Date.now();
 
-    if (t.tempSmallGpxUrl && t.tempSmallGpxUrlExpiry.valueOf() > now + minExpirationDelay * 1000) {
+    if (!process.env.FORCE_NEW_URLS && t.tempSmallGpxUrl && t.tempSmallGpxUrlExpiry.valueOf() > now + minExpirationDelay * 1000) {
         return Promise.resolve(t);
     } else {
         const downloadUrl = await getPresignedUrl(t, 'small');
-        console.log('Updating tempGpxUrl')
         const newTraceData: TraceData = {...t, tempSmallGpxUrl: downloadUrl, tempSmallGpxUrlExpiry: new Date(now + signedUrlExpires * 1000)}
         await withDao(dao => dao.updateTraceData(newTraceData));
         return newTraceData;

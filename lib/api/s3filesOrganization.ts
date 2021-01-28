@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export function getFilePrefix(directory: string) {
     if (directory && typeof directory !== 'string') {
         throw new Error(`Bad parameter '${directory}'`)
@@ -13,6 +15,9 @@ export function getFilePrefix(directory: string) {
 
 export type PossibleFileSuffix = 'full' | 'small'
 
-export function getS3FileName(traceData: {_id:string, origFilename:string, directory:string}, suffix: PossibleFileSuffix) {
+export function getS3FileName(traceData: { _id: string, origFilename: string, directory: string }, suffix: PossibleFileSuffix) {
+    if (!traceData.origFilename || traceData.origFilename === 'undefined') {
+        throw new Error('Bad traceData, no origFilename: ' + JSON.stringify(traceData))
+    }
     return getFilePrefix(traceData.directory) + traceData._id + '_' + suffix + '_' + traceData.origFilename;
 }
