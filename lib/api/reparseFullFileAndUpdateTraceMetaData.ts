@@ -12,7 +12,7 @@ export default function reparseFullFileAndUpdateTraceMetaData(_id: string) {
         const s3Data: any = await s3.getObject({Bucket: process.env.MY_AWS_BUCKET_NAME, Key: fullFileName}).promise()
         const text = s3Data.Body.toString('utf-8');
 
-        const parsedData = parseToGpxFileInfo(text, dbData.directory, dbData.origFilename)
+        const parsedData = parseToGpxFileInfo(text, dbData.origFilename)
         console.log('Parsed ' + _id, parsedData);
 
 

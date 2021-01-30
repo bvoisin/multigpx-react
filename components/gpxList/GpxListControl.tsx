@@ -53,6 +53,15 @@ const useStyles = makeStyles((theme: Theme) =>
             'text-overflow': 'ellipsis',
             'overflow-x': 'hidden'
         },
+        distance: {
+            fontSize: theme.typography.pxToRem(12),
+            fontWeight: theme.typography.fontWeightRegular,
+            fontStyle: 'italic'
+        }, elevationGain: {
+            fontSize: theme.typography.pxToRem(12),
+            fontWeight: theme.typography.fontWeightRegular,
+            fontStyle: 'italic'
+        },
         header: {
             '& button': {
                 padding: 2
@@ -109,6 +118,8 @@ export function GpxListControl({fileList}: GpxListControlProps) {
                                       }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                             <Typography className={classes.traceName}>{f.traceName}</Typography>
+                            {f.distance && <Typography className={classes.distance}> {f.distance.toLocaleString(undefined, {maximumFractionDigits: 0})}km</Typography>}
+                            {f.elevationGain && <Typography className={classes.elevationGain}> ∆{f.elevationGain.toLocaleString(undefined, {maximumFractionDigits: 0})}m</Typography>}
                             {(window.location.href as string).startsWith('http://localhost') &&
                             <a onClick={() => reparseGpxFile(f._id).then()}><ReplayIcon style={{fontSize: '0.8rem'}}/></a>
                             }

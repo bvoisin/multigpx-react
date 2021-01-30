@@ -1,5 +1,6 @@
 import * as sax from 'sax';
 import {checkEquals} from 'lib/checks';
+import {getDistanceFromLatLonInKm} from 'lib/gpx/gpxDistance';
 
 // async function getGpxXmlText(gpxFileUrl: TraceData | File): Promise<{ doc: Document, fileName: string }> {
 //     if (gpxFileUrl instanceof File) {
@@ -19,11 +20,18 @@ const traceNameStack = ['gpx', 'metadata', 'name']
 const traceNameStack2 = ['gpx', 'trk', 'name']
 const athleteNameStack = ['gpx', 'metadata', 'author', 'name']
 const linkStack = ['gpx', 'metadata', 'link']
+const trksegStack = ['gpx', 'trk', 'trkseg']
 
 export interface ParsedData {
     athleteName?: string;
     traceName?: string;
     link?: string;
+    /**
+     * all in meters
+     */
+    distance?: number;
+    elevationGain?: number;
+    elevationLoss?: number;
 }
 
 /**
@@ -41,7 +49,7 @@ export function omitNullEntries<T extends object>(data: T): Partial<T> {
     return ret;
 }
 
-export function parseToGpxFileInfo(fileContent: string, directory: string, origFilename: string): ParsedData {
+export function parseToGpxFileInfo(fileContent: string, origFilename: string): ParsedData {
     const parser = sax.parser(true, {trim: true});
 
     let readTraceName: string = undefined
@@ -62,28 +70,113 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
         return true;
     }
 
+    let distance = 0;
+    let elevationGain = 0;
+    let elevationLoss = 0;
     let currentText: string;
+    let inTrkseg = false;
+    let ptLat: number;
+    let ptLon: number;
+    let ptEle: number;
+    let previousPtLat: number;
+    let previousPtLon: number;
+    let previousPtEle: number;
+    const movingAverageLength = (+process.env.ELEVATION_SMA_LENGTH) || 3 // a tester sur d'autres traces mais 3 semble donner une bonne valeur pour Gravel - Paris Sud 60k
+    console.log('Using movingAverageLength ' + movingAverageLength + ' ' + process.env.ELEVATION_SMA_LENGTH)
+    const elevationArray = new Array<number>(movingAverageLength);
+    let elevationArrayIndex = 0;
+    let elevationArrayFull = false;
+    let elevationSum = 0;
+    let nbPoints = 0;
+
+    function addPoint() {
+        if (previousPtLat) {
+            const d = getDistanceFromLatLonInKm(previousPtLat, previousPtLon, ptLat, ptLon);
+            distance += d;
+
+            // calculate the elevation with a moving average of N points
+            const removedPtEle = elevationArray[elevationArrayIndex]
+            elevationArray[elevationArrayIndex] = ptEle;
+            elevationArrayIndex++;
+
+            const previousElevationSum = elevationSum;
+            elevationSum += ptEle;
+            if (elevationArrayFull) {
+                elevationSum -= removedPtEle
+                const deltaH = (elevationSum - previousElevationSum) / elevationArray.length;
+                if (deltaH > 0) {
+                    elevationGain += deltaH
+                } else {
+                    elevationLoss += -deltaH
+                }
+            }
+            if (elevationArrayIndex === elevationArray.length) {
+                elevationArrayFull = true;
+                elevationArrayIndex = 0;
+            }
+
+        }
+        nbPoints++
+
+        previousPtLat = ptLat;
+        ptLat = undefined;
+        previousPtLon = ptLon;
+        ptLon = undefined;
+        previousPtEle = ptEle;
+        ptEle = undefined;
+    }
+
     parser.onopentag = ({name, attributes}) => {
         currentStack.push(name)
         currentText = '';
-        switch (name) {
-            case 'link':
-                if (isCurrentStack(linkStack)) {
-                    link = attributes['href'] as string;
-                }
+        if (inTrkseg) {
+            switch (name) {
+                case 'trkpt':
+                    ptLat = +attributes['lat'];
+                    ptLon = +attributes['lon'];
+                    break;
+            }
+        } else {
+            switch (name) {
+                case 'link':
+                    if (isCurrentStack(linkStack)) {
+                        link = attributes['href'] as string;
+                    }
+                    break
+                case 'trkseg':
+                    if (isCurrentStack(trksegStack)) {
+                        inTrkseg = true;
+                    }
+                    break;
+            }
         }
     }
     parser.onclosetag = name => {
-        switch (name) {
-            case 'name':
-                if (isCurrentStack(traceNameStack)) {
-                    readTraceName = currentText
-                } else if (isCurrentStack(traceNameStack2) && !readTraceName) {
-                    readTraceName = currentText
-                } else if (isCurrentStack(athleteNameStack)) {
-                    athleteName = currentText
-                }
-                break
+        if (inTrkseg) {
+            switch (name) {
+                case 'ele':
+                    ptEle = +currentText
+                    break;
+                case 'trkpt':
+                    addPoint()
+                    break;
+                case 'trkseg':
+                    if (isCurrentStack(trksegStack)) {
+                        inTrkseg = false;
+                    }
+            }
+        } else {
+            switch (name) {
+                case 'name':
+                    if (isCurrentStack(traceNameStack)) {
+                        readTraceName = currentText
+                    } else if (isCurrentStack(traceNameStack2) && !readTraceName) {
+                        readTraceName = currentText
+                    } else if (isCurrentStack(athleteNameStack)) {
+                        athleteName = currentText
+                    }
+                    break;
+            }
         }
         const v = currentStack.pop()
         checkEquals(name, v);
@@ -94,7 +187,7 @@ export function parseToGpxFileInfo(fileContent: string, directory: string, origF
 
     parser.write(fileContent);
 
-    return omitNullEntries({athleteName, traceName: fixTraceName(readTraceName, origFilename), link})
+    return omitNullEntries({athleteName, traceName: fixTraceName(readTraceName, origFilename), link, distance, elevationGain: elevationGain, elevationLoss: elevationLoss, nbPoints})
 }
 
 // export function updateGpxMetaInfo(f: GpxFileInfo, values: Partial<GpxFileInfo>): Promise<GpxFileInfo> {
