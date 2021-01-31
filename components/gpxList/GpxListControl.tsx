@@ -7,6 +7,8 @@ import {GpxTraceDetails} from 'components/gpxList/GpxTraceDetails';
 import {TraceDataWithXml} from 'lib/io/getTraces';
 import {reparseGpxFile} from 'lib/io/reparseGpxFile';
 import ReplayIcon from '@material-ui/icons/Replay';
+import DeleteIcon from '@material-ui/icons/Delete';
+import {deleteTrace} from 'lib/io/deleteTrace';
 
 export interface GpxListControlProps {
     fileList: TraceDataWithXml[];
@@ -121,8 +123,14 @@ export function GpxListControl({fileList}: GpxListControlProps) {
                             {f.distance && <Typography className={classes.distance}> {f.distance.toLocaleString(undefined, {maximumFractionDigits: 0})}km</Typography>}
                             {f.elevationGain && <Typography className={classes.elevationGain}> ∆{f.elevationGain.toLocaleString(undefined, {maximumFractionDigits: 0})}m</Typography>}
                             {(window.location.href as string).startsWith('http://localhost') &&
-                            <a onClick={() => reparseGpxFile(f._id).then()}><ReplayIcon style={{fontSize: '0.8rem'}}/></a>
+                            <>
+                              <a onClick={() => reparseGpxFile(f._id).then()}><ReplayIcon style={{fontSize: '0.8rem'}}/></a>
+                              <a onClick={() => {
+                                  if (window.confirm('Are you sure you wish to delete this trace?')) deleteTrace(f._id).then()
+                              }}><DeleteIcon style={{fontSize: '0.8rem'}}/></a>
+                            </>
                             }
+
                         </AccordionSummary>
                         <AccordionDetails className={classes.details}>
                             <GpxTraceDetails trace={f}/>

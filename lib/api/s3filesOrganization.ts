@@ -15,6 +15,8 @@ export function getFilePrefix(directory: string) {
 
 export type PossibleFileSuffix = 'full' | 'small'
 
+export const allFileSuffixes: PossibleFileSuffix[] = ['full', 'small']
+
 export function getS3FileName(traceData: { _id: string, origFilename: string, directory: string }, suffix: PossibleFileSuffix) {
     if (!traceData.origFilename || traceData.origFilename === 'undefined') {
         throw new Error('Bad traceData, no origFilename: ' + JSON.stringify(traceData))

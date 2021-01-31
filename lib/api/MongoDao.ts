@@ -9,7 +9,7 @@ export interface TraceDataBeforeCreation {
     directory: string;
 }
 
-export interface TraceDataAtCreation extends TraceDataBeforeCreation{
+export interface TraceDataAtCreation extends TraceDataBeforeCreation {
     _id: string;
 }
 
@@ -85,7 +85,7 @@ export class MongoDao {
         const _id = new ObjectId(id);
         const result = await collection.replaceOne({_id}, {...newTraceData, _id});
         checkEquals(1, result.matchedCount, 'while saving ' + id + ' ' + result);
-        if (result.modifiedCount==0) {
+        if (result.modifiedCount == 0) {
             console.log('The trace MetaData was already at this state:', newTraceData)
         } else {
             console.log('Updated trace MetaData to:', newTraceData)
@@ -97,6 +97,14 @@ export class MongoDao {
         this.client = null;
         // it seems that we should not close the client, but keep it opened (single Instance)...
         // return this.client.close();
+    }
+
+    async deleteTraceData(traceId: string) {
+        const collection = this.getCollection();
+        const _id = new ObjectId(traceId);
+        const result = await collection.deleteOne({_id})
+        checkEquals(1, result.deletedCount, 'while deleting ' + _id + ' ' + result);
+        console.log('Deleted trace ' + _id, result)
     }
 }
 
